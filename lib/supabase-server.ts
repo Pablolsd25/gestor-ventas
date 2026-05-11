@@ -1,0 +1,33 @@
+import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
+import type { Database } from "@/types/database";
+
+/**
+ * Crea un cliente Supabase para uso en Server Components, Server Actions
+ * y Route Handlers. Lee / escribe la sesión desde las cookies de Next.js.
+ */
+export async function createSupabaseServerClient() {
+  const cookieStore = await cookies();
+
+  return createServerClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll();
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) => {
+              cookieStore.set(name, value, options);
+            });
+          } catch {
+            // Llamado desde un Server Component (cookies de solo lectura).
+            // El proxy maneja la actualización de sesión.
+          }
+        },
+      },
+    }
+  );
+}
