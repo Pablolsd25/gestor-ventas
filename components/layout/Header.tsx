@@ -12,7 +12,9 @@ const titles: Record<string, string> = {
 
 export default function Header() {
   const pathname = usePathname();
-  const title = titles[pathname] ?? "GestorVentas";
+  const title =
+    titles[pathname] ??
+    (pathname.startsWith("/clientes") ? "Clientes" : "GestorVentas");
 
   const today = new Date().toLocaleDateString("es-AR", {
     weekday: "long",

@@ -98,6 +98,12 @@ export default async function ClienteDetallePage({ params }: Props) {
               {cliente.status}
             </span>
           )}
+          <Link
+            href={`/clientes/${id}/editar`}
+            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-lg transition-colors border border-gray-200"
+          >
+            Editar
+          </Link>
         </div>
 
         {/* Materiales */}

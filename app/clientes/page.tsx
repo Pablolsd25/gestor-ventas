@@ -45,9 +45,12 @@ export default async function ClientesPage() {
       {/* Cabecera + acción */}
       <div className="flex items-center justify-between">
         <p className="text-sm text-gray-500">{clientes.length} clientes en total</p>
-        <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
+        <Link
+          href="/clientes/nuevo"
+          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
+        >
           + Nuevo Cliente
-        </button>
+        </Link>
       </div>
 
       {/* Tabla con scroll horizontal */}

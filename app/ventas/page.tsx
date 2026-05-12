@@ -1,5 +1,6 @@
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { formatMonto } from "@/lib/utils";
+import Link from "next/link";
 import type { VentaConUniones } from "@/types/database";
 
 const estadoColor: Record<string, string> = {
@@ -81,9 +82,12 @@ export default async function VentasPage() {
       {/* Cabecera + acción */}
       <div className="flex items-center justify-between">
         <p className="text-sm text-gray-500">{ventas.length} ventas / pedidos en total</p>
-        <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
+        <Link
+          href="/ventas/nuevo"
+          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
+        >
           + Nueva Venta
-        </button>
+        </Link>
       </div>
 
       {/* Tabla */}
@@ -93,12 +97,13 @@ export default async function VentasPage() {
             <thead className="bg-gray-50 border-b border-gray-100">
               <tr>
                 <th className="text-left px-4 py-3 text-gray-500 font-medium">Cliente</th>
-                <th className="text-left px-4 py-3 text-gray-500 font-medium">Descripción</th>
+                <th className="text-left px-4 py-3 text-gray-500 font-medium">Descripci&oacute;n</th>
                 <th className="text-left px-4 py-3 text-gray-500 font-medium">Material</th>
                 <th className="text-right px-4 py-3 text-gray-500 font-medium">Cantidad</th>
                 <th className="text-left px-4 py-3 text-gray-500 font-medium">Estado</th>
                 <th className="text-left px-4 py-3 text-gray-500 font-medium">Cierre Est.</th>
                 <th className="text-right px-4 py-3 text-gray-500 font-medium">Monto</th>
+                <th className="px-4 py-3 w-12" />
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
@@ -124,6 +129,14 @@ export default async function VentasPage() {
                   <td className="px-4 py-3 text-gray-500">{v.fecha_cierre ?? "—"}</td>
                   <td className="px-4 py-3 text-right font-semibold text-gray-800">
                     {formatMonto(Number(v.monto))}
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <Link
+                      href={`/ventas/${v.id}/editar`}
+                      className="text-blue-600 hover:underline text-xs"
+                    >
+                      Editar
+                    </Link>
                   </td>
                 </tr>
               ))}
