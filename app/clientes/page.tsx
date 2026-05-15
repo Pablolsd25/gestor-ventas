@@ -54,8 +54,91 @@ export default async function ClientesPage() {
         </Link>
       </div>
 
-      {/* Tabla con scroll horizontal */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      {/* ── Vista mobile: tarjetas ── */}
+      <div className="md:hidden space-y-3">
+        {clientes.map((c) => {
+          const contactos = (c.contactos ?? []) as Contacto[];
+          const cp = contactos.find((ct) => ct.nombre) ?? contactos[0];
+          const otrosContactos = contactos.length - 1;
+          return (
+            <div key={c.id} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 space-y-3">
+              {/* Encabezado: razón social + status */}
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <p className="font-semibold text-gray-900 leading-tight">{c.razon_social}</p>
+                  {c.sae && (
+                    <p className="text-xs text-gray-400 font-mono mt-0.5">SAE {c.sae}</p>
+                  )}
+                </div>
+                {c.status ? (
+                  <span className={`shrink-0 text-xs px-2 py-0.5 rounded-full font-medium ${statusBadge[c.status]}`}>
+                    {c.status}
+                  </span>
+                ) : null}
+              </div>
+
+              {/* Detalles en grid 2 columnas */}
+              <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                {cp?.nombre && (
+                  <div>
+                    <p className="text-xs text-gray-400 uppercase tracking-wide">Contacto</p>
+                    <p className="text-gray-700">
+                      {cp.nombre}
+                      {otrosContactos > 0 && (
+                        <span className="ml-1 text-xs text-blue-500">+{otrosContactos}</span>
+                      )}
+                    </p>
+                  </div>
+                )}
+                {cp?.telefonos?.[0] && (
+                  <div>
+                    <p className="text-xs text-gray-400 uppercase tracking-wide">Teléfono</p>
+                    <p className="text-gray-700">{cp.telefonos[0]}</p>
+                  </div>
+                )}
+                {c.ciudad && (
+                  <div>
+                    <p className="text-xs text-gray-400 uppercase tracking-wide">Ciudad</p>
+                    <p className="text-gray-700">{c.ciudad}</p>
+                  </div>
+                )}
+                {(c.materiales as string[] | null)?.length ? (
+                  <div>
+                    <p className="text-xs text-gray-400 uppercase tracking-wide">Materiales</p>
+                    <div className="flex flex-wrap gap-1 mt-0.5">
+                      {(c.materiales as string[]).map((m) => (
+                        <span key={m} className="text-xs bg-gray-100 text-gray-700 px-1.5 py-0.5 rounded">
+                          {m}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+
+              {/* Acciones */}
+              <div className="flex items-center gap-2 pt-1 border-t border-gray-50">
+                <Link
+                  href={`/clientes/${c.id}`}
+                  className="flex-1 text-center text-xs text-blue-600 font-medium py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors"
+                >
+                  Ver detalle
+                </Link>
+                <Link
+                  href={`/clientes/${c.id}/editar`}
+                  className="flex-1 text-center text-xs text-amber-600 font-medium py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 transition-colors"
+                >
+                  Editar
+                </Link>
+                <DeleteClienteButton id={c.id} />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* ── Vista desktop: tabla ── */}
+      <div className="hidden md:block bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm min-w-[900px]">
             <thead className="bg-gray-50 border-b border-gray-100">

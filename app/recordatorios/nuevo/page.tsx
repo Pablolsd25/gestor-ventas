@@ -3,7 +3,13 @@ import { createRecordatorioAction } from "../actions";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import Link from "next/link";
 
-export default async function NuevoRecordatorioPage() {
+interface PageProps {
+  searchParams: Promise<{ fecha?: string }>;
+}
+
+export default async function NuevoRecordatorioPage({ searchParams }: PageProps) {
+  const { fecha } = await searchParams;
+
   const supabase = await createSupabaseServerClient() as any; // eslint-disable-line @typescript-eslint/no-explicit-any
 
   const { data: clientesData } = await supabase
@@ -12,6 +18,12 @@ export default async function NuevoRecordatorioPage() {
     .order("razon_social");
 
   const clientes = (clientesData ?? []) as Array<{ id: string; razon_social: string }>;
+
+  // Validate fecha param — must be YYYY-MM-DD
+  const fechaInicial =
+    fecha && /^\d{4}-\d{2}-\d{2}$/.test(fecha)
+      ? fecha
+      : new Date().toISOString().split("T")[0];
 
   return (
     <div className="space-y-6">
@@ -32,6 +44,16 @@ export default async function NuevoRecordatorioPage() {
         action={createRecordatorioAction}
         submitLabel="Crear Recordatorio"
         clientes={clientes}
+        initialData={{
+          titulo:      "",
+          descripcion: "",
+          cliente_id:  "",
+          venta_id:    "",
+          fecha:       fechaInicial,
+          hora:        "09:00",
+          prioridad:   "",
+          tipo:        "",
+        }}
       />
     </div>
   );

@@ -1,6 +1,7 @@
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import type { RecordatorioConUniones } from "@/types/database";
 import RecordatorioItem from "@/components/recordatorios/RecordatorioItem";
+import CalendarioRecordatorios from "@/components/recordatorios/CalendarioRecordatorios";
 import Link from "next/link";
 
 export default async function RecordatoriosPage() {
@@ -14,37 +15,79 @@ export default async function RecordatoriosPage() {
 
   const recordatorios = (data ?? []) as RecordatorioConUniones[];
 
+  const today     = new Date().toISOString().split("T")[0];
   const pendientes  = recordatorios.filter((r) => !r.completado);
-  const completados = recordatorios.filter((r) => r.completado);
+  const completados = recordatorios.filter((r) =>  r.completado);
   const altaPrioridad = pendientes.filter((r) => r.prioridad === "alta").length;
+
+  const atrasados = pendientes.filter((r) => r.fecha < today);
+  const deHoy     = pendientes.filter((r) => r.fecha === today);
 
   return (
     <div className="space-y-6">
-      {/* Stats */}
-      <div className="grid grid-cols-3 gap-4">
-        {[
-          { label: "Pendientes",      valor: pendientes.length, color: "text-amber-600" },
-          { label: "Alta prioridad",   valor: altaPrioridad,    color: "text-red-600" },
-          { label: "Completados",      valor: completados.length, color: "text-green-600" },
-        ].map((s) => (
-          <div key={s.label} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 text-center">
-            <p className={`text-3xl font-bold ${s.color}`}>{s.valor}</p>
-            <p className="text-sm text-gray-500 mt-1">{s.label}</p>
+      {/* ── Alertas ─────────────────────────────────────────── */}
+      {atrasados.length > 0 && (
+        <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-800">
+          <span className="text-lg leading-none shrink-0">&#9888;&#65039;</span>
+          <div>
+            <p className="font-semibold">
+              {atrasados.length} recordatorio{atrasados.length > 1 ? "s" : ""} vencido{atrasados.length > 1 ? "s" : ""}
+            </p>
+            <p className="text-red-600 mt-0.5">
+              {atrasados.slice(0, 3).map((r) => r.titulo).join(", ")}
+              {atrasados.length > 3 ? ` y ${atrasados.length - 3} más` : ""}
+            </p>
           </div>
-        ))}
-      </div>
+        </div>
+      )}
 
-      {/* Accion */}
-      <div className="flex justify-end">
+      {deHoy.length > 0 && (
+        <div className="flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-800">
+          <span className="text-lg leading-none shrink-0">&#128276;</span>
+          <div>
+            <p className="font-semibold">
+              {deHoy.length} recordatorio{deHoy.length > 1 ? "s" : ""} para hoy
+            </p>
+            <p className="text-amber-600 mt-0.5">
+              {deHoy.slice(0, 3).map((r) => `${r.hora.slice(0, 5)} ${r.titulo}`).join(", ")}
+              {deHoy.length > 3 ? ` y ${deHoy.length - 3} más` : ""}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* ── Stats + acción ──────────────────────────────────── */}
+      <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+        <div className="grid grid-cols-3 gap-4 flex-1">
+          {[
+            { label: "Pendientes",     valor: pendientes.length,  color: "text-amber-600"  },
+            { label: "Alta prioridad", valor: altaPrioridad,      color: "text-red-600"    },
+            { label: "Completados",    valor: completados.length, color: "text-green-600"  },
+          ].map((s) => (
+            <div key={s.label} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 text-center">
+              <p className={`text-3xl font-bold ${s.color}`}>{s.valor}</p>
+              <p className="text-sm text-gray-500 mt-1">{s.label}</p>
+            </div>
+          ))}
+        </div>
+
         <Link
           href="/recordatorios/nuevo"
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
+          className="self-start sm:self-auto px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors whitespace-nowrap"
         >
           + Nuevo Recordatorio
         </Link>
       </div>
 
-      {/* Pendientes */}
+      {/* ── Calendario ──────────────────────────────────────── */}
+      <div>
+        <h3 className="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wide">
+          Calendario
+        </h3>
+        <CalendarioRecordatorios recordatorios={pendientes} />
+      </div>
+
+      {/* ── Pendientes ──────────────────────────────────────── */}
       <div>
         <h3 className="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wide">
           Pendientes ({pendientes.length})
@@ -54,17 +97,17 @@ export default async function RecordatoriosPage() {
             <RecordatorioItem
               key={r.id}
               r={{
-                id: r.id,
-                titulo: r.titulo,
-                descripcion: r.descripcion,
-                cliente_id: r.cliente_id,
+                id:             r.id,
+                titulo:         r.titulo,
+                descripcion:    r.descripcion,
+                cliente_id:     r.cliente_id,
                 cliente_nombre: r.clientes?.razon_social ?? null,
-                venta_id: r.venta_id,
-                fecha: r.fecha,
-                hora: r.hora,
-                prioridad: r.prioridad,
-                tipo: r.tipo,
-                completado: r.completado,
+                venta_id:       r.venta_id,
+                fecha:          r.fecha,
+                hora:           r.hora,
+                prioridad:      r.prioridad,
+                tipo:           r.tipo,
+                completado:     r.completado,
               }}
             />
           ))}
@@ -76,7 +119,7 @@ export default async function RecordatoriosPage() {
         </div>
       </div>
 
-      {/* Completados */}
+      {/* ── Completados ─────────────────────────────────────── */}
       {completados.length > 0 && (
         <div>
           <h3 className="text-sm font-semibold text-gray-400 mb-3 uppercase tracking-wide">
@@ -88,15 +131,15 @@ export default async function RecordatoriosPage() {
                 key={r.id}
                 className="bg-gray-50 rounded-xl border border-gray-100 p-4 flex items-center gap-4 opacity-60"
               >
-                <span className="text-xl">{tipoIconoStatic[r.tipo]}</span>
-                <div className="flex-1">
-                  <p className="text-sm text-gray-500 line-through">{r.titulo}</p>
+                <span className="text-xl">{TIPO_ICONO[r.tipo]}</span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-gray-500 line-through truncate">{r.titulo}</p>
                   <p className="text-xs text-gray-400">
-                    {r.fecha} · {r.hora.slice(0, 5)}
+                    {r.fecha} &middot; {r.hora.slice(0, 5)}
                     {r.clientes?.razon_social && ` · ${r.clientes.razon_social}`}
                   </p>
                 </div>
-                <span className="text-xs text-green-600 font-medium">✓ Completado</span>
+                <span className="text-xs text-green-600 font-medium shrink-0">&#10003; Completado</span>
               </div>
             ))}
           </div>
@@ -106,7 +149,7 @@ export default async function RecordatoriosPage() {
   );
 }
 
-const tipoIconoStatic: Record<string, string> = {
+const TIPO_ICONO: Record<string, string> = {
   llamada:     "📞",
   reunion:     "🤝",
   email:       "✉️",

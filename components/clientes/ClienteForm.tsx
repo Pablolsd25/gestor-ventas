@@ -119,6 +119,7 @@ export default function ClienteForm({
   }
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
     const fd = new FormData(e.currentTarget);
     fd.set("contactos", JSON.stringify(contactos));
     fd.set("materiales", JSON.stringify(Array.from(selectedMaterials)));
