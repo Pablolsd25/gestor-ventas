@@ -14,6 +14,7 @@ type ClienteRow = {
   razon_social: string;
   sae: string | null;
   ciudad: string;
+  pagina_web: string | null;
   status: "Venta" | "Credito" | "Prospecto" | null;
   comentarios: string | null;
 };
@@ -95,6 +96,7 @@ export default async function EditarClientePage({ params }: Props) {
           razon_social: cliente.razon_social,
           sae: cliente.sae ?? "",
           ciudad: cliente.ciudad,
+          pagina_web: cliente.pagina_web ?? "",
           status: (cliente.status ?? "") as "Venta" | "Credito" | "Prospecto" | "",
           comentarios: cliente.comentarios ?? "",
           contactos,

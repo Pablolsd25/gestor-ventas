@@ -106,6 +106,24 @@ export default async function ClienteDetallePage({ params }: Props) {
           </Link>
         </div>
 
+        {/* Página web */}
+        {cliente.pagina_web && (
+          <div className="mt-3">
+            <a
+              href={cliente.pagina_web}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 hover:underline"
+            >
+              <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+              </svg>
+              {cliente.pagina_web}
+            </a>
+          </div>
+        )}
+
         {/* Materiales */}
         {(cliente.materiales as string[])?.length > 0 && (
           <div className="mt-4">

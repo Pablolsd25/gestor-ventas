@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS clientes (
   ciudad       VARCHAR(255) NOT NULL DEFAULT '',
   status       VARCHAR(20)  CHECK (status IN ('Venta', 'Credito', 'Prospecto')),
   comentarios  TEXT,                                  -- fechas, motivos, seguimientos
+  pagina_web   VARCHAR(500),                          -- sitio web del cliente
   created_at   TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
   updated_at   TIMESTAMPTZ  NOT NULL DEFAULT NOW()
 );
@@ -121,6 +122,7 @@ SELECT
   c.ciudad,
   c.status,
   c.comentarios,
+  c.pagina_web,
   c.created_at,
   c.updated_at,
   -- Contactos como JSON array

@@ -20,6 +20,7 @@ interface ClienteFormData {
   razon_social: string;
   sae: string;
   ciudad: string;
+  pagina_web: string;
   status: "Venta" | "Credito" | "Prospecto" | "";
   comentarios: string;
   contactos: ContactoData[];
@@ -58,6 +59,7 @@ export async function createClienteAction(
     razon_social: (formData.get("razon_social") as string | null)?.trim() ?? "",
     sae: (formData.get("sae") as string | null)?.trim() ?? "",
     ciudad: (formData.get("ciudad") as string | null)?.trim() ?? "",
+    pagina_web: (formData.get("pagina_web") as string | null)?.trim() ?? "",
     status: (formData.get("status") as string | null) as ClienteFormData["status"] ?? "",
     comentarios: (formData.get("comentarios") as string | null)?.trim() ?? "",
     contactos: parseContactos(formData.get("contactos")),
@@ -78,6 +80,7 @@ export async function createClienteAction(
     razon_social: data.razon_social,
     sae: data.sae || null,
     ciudad: data.ciudad,
+    pagina_web: data.pagina_web || null,
     status: data.status || null,
     comentarios: data.comentarios || null,
   }).select("id").single();
@@ -129,6 +132,7 @@ export async function updateClienteAction(
     razon_social: (formData.get("razon_social") as string | null)?.trim() ?? "",
     sae: (formData.get("sae") as string | null)?.trim() ?? "",
     ciudad: (formData.get("ciudad") as string | null)?.trim() ?? "",
+    pagina_web: (formData.get("pagina_web") as string | null)?.trim() ?? "",
     status: (formData.get("status") as string | null) as ClienteFormData["status"] ?? "",
     comentarios: (formData.get("comentarios") as string | null)?.trim() ?? "",
     contactos: parseContactos(formData.get("contactos")),
@@ -149,6 +153,7 @@ export async function updateClienteAction(
     razon_social: data.razon_social,
     sae: data.sae || null,
     ciudad: data.ciudad,
+    pagina_web: data.pagina_web || null,
     status: data.status || null,
     comentarios: data.comentarios || null,
   }).eq("id", id);

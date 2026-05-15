@@ -37,6 +37,7 @@ export interface Database {
           ciudad:       string;
           status:       "Venta" | "Credito" | "Prospecto" | null;
           comentarios:  string | null;
+          pagina_web:   string | null;
           created_at:   string;
           updated_at:   string;
         };
@@ -47,6 +48,7 @@ export interface Database {
           ciudad?:      string;
           status?:      "Venta" | "Credito" | "Prospecto" | null;
           comentarios?: string | null;
+          pagina_web?:  string | null;
           created_at?:  string;
           updated_at?:  string;
         };
@@ -57,6 +59,7 @@ export interface Database {
           ciudad?:       string;
           status?:       "Venta" | "Credito" | "Prospecto" | null;
           comentarios?:  string | null;
+          pagina_web?:   string | null;
           updated_at?:   string;
         };
       };
@@ -198,6 +201,7 @@ export interface Database {
           ciudad:       string;
           status:       "Venta" | "Credito" | "Prospecto" | null;
           comentarios:  string | null;
+          pagina_web:   string | null;
           created_at:   string;
           updated_at:   string;
           contactos:    Array<{

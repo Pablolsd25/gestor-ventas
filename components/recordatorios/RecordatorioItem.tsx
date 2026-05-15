@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { completeRecordatorioAction } from "@/app/recordatorios/actions";
 import Link from "next/link";
+import DeleteRecordatorioButton from "./DeleteRecordatorioButton";
 
 const prioridadColor: Record<string, string> = {
   alta:  "bg-red-100 text-red-700 border-red-200",
@@ -49,7 +50,7 @@ export default function RecordatorioItem({ r }: { r: RecordatorioItemProps }) {
       className={`bg-white rounded-xl border shadow-sm p-4 flex items-start gap-4 ${prioridadColor[r.prioridad]}`}
     >
       <span className="text-2xl mt-0.5">{tipoIcono[r.tipo]}</span>
-      <div className="flex-1">
+      <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
           <p className="font-medium text-gray-900">{r.titulo}</p>
           <span className={`text-xs px-2 py-0.5 rounded-full font-medium border ${prioridadColor[r.prioridad]}`}>
@@ -69,22 +70,44 @@ export default function RecordatorioItem({ r }: { r: RecordatorioItemProps }) {
           )}
         </div>
       </div>
-      <div className="flex gap-2">
+
+      {/* Acciones */}
+      <div className="flex items-center gap-1 shrink-0">
+        {/* Completar */}
         <form action={action}>
           <button
             type="submit"
             disabled={pending}
-            className="text-xs px-3 py-1 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white rounded-lg transition-colors"
+            title="Marcar como completado"
+            className="text-green-600 hover:text-green-700 disabled:opacity-40 transition-colors p-1.5 rounded hover:bg-green-50"
           >
-            ✓ Completar
+            {pending ? (
+              <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+              </svg>
+            ) : (
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+              </svg>
+            )}
           </button>
         </form>
+
+        {/* Editar */}
         <Link
           href={`/recordatorios/${r.id}/editar`}
-          className="text-xs px-3 py-1 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition-colors"
+          title="Editar recordatorio"
+          className="text-gray-400 hover:text-amber-600 transition-colors p-1.5 rounded hover:bg-amber-50"
         >
-          Editar
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+          </svg>
         </Link>
+
+        {/* Eliminar */}
+        <DeleteRecordatorioButton id={r.id} />
       </div>
     </div>
   );

@@ -2,6 +2,7 @@ import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { formatMonto } from "@/lib/utils";
 import Link from "next/link";
 import type { VentaConUniones } from "@/types/database";
+import DeleteVentaButton from "@/components/ventas/DeleteVentaButton";
 
 const estadoColor: Record<string, string> = {
   ganada:     "bg-green-100 text-green-800",
@@ -103,7 +104,7 @@ export default async function VentasPage() {
                 <th className="text-left px-4 py-3 text-gray-500 font-medium">Estado</th>
                 <th className="text-left px-4 py-3 text-gray-500 font-medium">Cierre Est.</th>
                 <th className="text-right px-4 py-3 text-gray-500 font-medium">Monto</th>
-                <th className="px-4 py-3 w-12" />
+                <th className="px-4 py-3 w-20" />
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
@@ -131,12 +132,19 @@ export default async function VentasPage() {
                     {formatMonto(Number(v.monto))}
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <Link
-                      href={`/ventas/${v.id}/editar`}
-                      className="text-blue-600 hover:underline text-xs"
-                    >
-                      Editar
-                    </Link>
+                    <div className="flex items-center justify-end gap-1">
+                      <Link
+                        href={`/ventas/${v.id}/editar`}
+                        title="Editar venta"
+                        className="text-gray-400 hover:text-amber-600 transition-colors p-1 rounded hover:bg-amber-50"
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                      </Link>
+                      <DeleteVentaButton id={v.id} />
+                    </div>
                   </td>
                 </tr>
               ))}
