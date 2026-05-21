@@ -3,13 +3,75 @@ import type { ClienteCompletoRow } from "@/types/database";
 import Link from "next/link";
 import DeleteClienteButton from "@/components/clientes/DeleteClienteButton";
 
-const statusBadge: Record<string, string> = {
+// ── Status helpers ────────────────────────────────────────────────────────────
+
+const STATUS_BADGE: Record<string, string> = {
   Venta:     "bg-green-100 text-green-800",
   Credito:   "bg-blue-100 text-blue-800",
   Prospecto: "bg-amber-100 text-amber-800",
 };
 
-export default async function ClientesPage() {
+type TabKey = "venta" | "credito" | "prospecto" | "sin" | "todos";
+
+const TABS: { key: TabKey; label: string; color: string; activeClass: string; dotClass: string }[] = [
+  {
+    key:         "venta",
+    label:       "En Venta",
+    color:       "text-green-700",
+    activeClass: "border-green-500 text-green-700 bg-green-50",
+    dotClass:    "bg-green-500",
+  },
+  {
+    key:         "credito",
+    label:       "Crédito",
+    color:       "text-blue-700",
+    activeClass: "border-blue-500 text-blue-700 bg-blue-50",
+    dotClass:    "bg-blue-500",
+  },
+  {
+    key:         "prospecto",
+    label:       "Prospectos",
+    color:       "text-amber-700",
+    activeClass: "border-amber-500 text-amber-700 bg-amber-50",
+    dotClass:    "bg-amber-500",
+  },
+  {
+    key:         "sin",
+    label:       "Sin clasificar",
+    color:       "text-gray-500",
+    activeClass: "border-gray-400 text-gray-700 bg-gray-50",
+    dotClass:    "bg-gray-400",
+  },
+  {
+    key:         "todos",
+    label:       "Todos",
+    color:       "text-gray-600",
+    activeClass: "border-gray-500 text-gray-800 bg-white",
+    dotClass:    "bg-gray-500",
+  },
+];
+
+function tabFilter(c: ClienteCompletoRow, tab: TabKey): boolean {
+  switch (tab) {
+    case "venta":     return c.status === "Venta";
+    case "credito":   return c.status === "Credito";
+    case "prospecto": return c.status === "Prospecto";
+    case "sin":       return !c.status;
+    case "todos":     return true;
+  }
+}
+
+// ── Page ──────────────────────────────────────────────────────────────────────
+
+export default async function ClientesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string }>;
+}) {
+  const { tab: rawTab } = await searchParams;
+  const validTabs = new Set<string>(["venta", "credito", "prospecto", "sin", "todos"]);
+  const activeTab: TabKey = (rawTab && validTabs.has(rawTab) ? rawTab : "venta") as TabKey;
+
   const supabase = await createSupabaseServerClient();
 
   const { data: clientesData } = await supabase
@@ -19,33 +81,58 @@ export default async function ClientesPage() {
 
   const clientes = (clientesData ?? []) as ClienteCompletoRow[];
 
+  const counts: Record<TabKey, number> = {
+    venta:     clientes.filter((c) => c.status === "Venta").length,
+    credito:   clientes.filter((c) => c.status === "Credito").length,
+    prospecto: clientes.filter((c) => c.status === "Prospecto").length,
+    sin:       clientes.filter((c) => !c.status).length,
+    todos:     clientes.length,
+  };
+
+  const filtered = clientes.filter((c) => tabFilter(c, activeTab));
+
   type Contacto = { id: string; nombre: string; telefonos: string[]; correo: string | null };
 
-  const enVenta    = clientes.filter((c) => c.status === "Venta").length;
-  const credito    = clientes.filter((c) => c.status === "Credito").length;
-  const prospectos = clientes.filter((c) => c.status === "Prospecto").length;
-  const sinStatus  = clientes.filter((c) => !c.status).length;
-
   return (
-    <div className="space-y-6">
-      {/* Resumen por status */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {[
-          { label: "En Venta",       valor: enVenta,    color: "text-green-600" },
-          { label: "Crédito",        valor: credito,    color: "text-blue-600" },
-          { label: "Prospectos",     valor: prospectos, color: "text-amber-600" },
-          { label: "Sin clasificar", valor: sinStatus,  color: "text-gray-500" },
-        ].map((s) => (
-          <div key={s.label} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 text-center">
-            <p className={`text-3xl font-bold ${s.color}`}>{s.valor}</p>
-            <p className="text-sm text-gray-500 mt-1">{s.label}</p>
-          </div>
-        ))}
+    <div className="space-y-5">
+
+      {/* ── Tab bar ─────────────────────────────────────────────────────── */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm px-2 py-2">
+        <div className="flex items-center gap-1 overflow-x-auto">
+          {TABS.map((t) => {
+            const isActive = t.key === activeTab;
+            return (
+              <Link
+                key={t.key}
+                href={`/clientes?tab=${t.key}`}
+                className={[
+                  "flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium whitespace-nowrap transition-all border",
+                  isActive
+                    ? `${t.activeClass} border-opacity-60 shadow-sm`
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50",
+                ].join(" ")}
+              >
+                <span className={`w-2 h-2 rounded-full shrink-0 ${isActive ? t.dotClass : "bg-gray-300"}`} />
+                {t.label}
+                <span className={[
+                  "text-xs px-1.5 py-0.5 rounded-full font-semibold",
+                  isActive ? "bg-white/70 text-current" : "bg-gray-100 text-gray-500",
+                ].join(" ")}>
+                  {counts[t.key]}
+                </span>
+              </Link>
+            );
+          })}
+        </div>
       </div>
 
-      {/* Cabecera + acción */}
+      {/* ── Cabecera ────────────────────────────────────────────────────── */}
       <div className="flex items-center justify-between">
-        <p className="text-sm text-gray-500">{clientes.length} clientes en total</p>
+        <p className="text-sm text-gray-500">
+          {filtered.length === clientes.length
+            ? `${clientes.length} clientes en total`
+            : `${filtered.length} de ${clientes.length} clientes`}
+        </p>
         <Link
           href="/clientes/nuevo"
           className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
@@ -54,15 +141,19 @@ export default async function ClientesPage() {
         </Link>
       </div>
 
-      {/* ── Vista mobile: tarjetas ── */}
+      {/* ── Vista mobile: tarjetas ─────────────────────────────────────── */}
       <div className="md:hidden space-y-3">
-        {clientes.map((c) => {
+        {filtered.length === 0 && (
+          <div className="text-center py-12 text-gray-400 text-sm">
+            No hay clientes en esta categoría
+          </div>
+        )}
+        {filtered.map((c) => {
           const contactos = (c.contactos ?? []) as Contacto[];
           const cp = contactos.find((ct) => ct.nombre) ?? contactos[0];
           const otrosContactos = contactos.length - 1;
           return (
             <div key={c.id} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 space-y-3">
-              {/* Encabezado: razón social + status */}
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <p className="font-semibold text-gray-900 leading-tight">{c.razon_social}</p>
@@ -71,13 +162,12 @@ export default async function ClientesPage() {
                   )}
                 </div>
                 {c.status ? (
-                  <span className={`shrink-0 text-xs px-2 py-0.5 rounded-full font-medium ${statusBadge[c.status]}`}>
+                  <span className={`shrink-0 text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_BADGE[c.status]}`}>
                     {c.status}
                   </span>
                 ) : null}
               </div>
 
-              {/* Detalles en grid 2 columnas */}
               <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
                 {cp?.nombre && (
                   <div>
@@ -116,7 +206,6 @@ export default async function ClientesPage() {
                 ) : null}
               </div>
 
-              {/* Acciones */}
               <div className="flex items-center gap-2 pt-1 border-t border-gray-50">
                 <Link
                   href={`/clientes/${c.id}`}
@@ -137,140 +226,129 @@ export default async function ClientesPage() {
         })}
       </div>
 
-      {/* ── Vista desktop: tabla ── */}
+      {/* ── Vista desktop: tabla ──────────────────────────────────────── */}
       <div className="hidden md:block bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm min-w-[900px]">
-            <thead className="bg-gray-50 border-b border-gray-100">
-              <tr>
-                <th className="text-left px-4 py-3 text-gray-500 font-medium w-16">SAE</th>
-                <th className="text-left px-4 py-3 text-gray-500 font-medium">Razón Social</th>
-                <th className="text-left px-4 py-3 text-gray-500 font-medium">Contacto</th>
-                <th className="text-left px-4 py-3 text-gray-500 font-medium">Teléfono(s)</th>
-                <th className="text-left px-4 py-3 text-gray-500 font-medium">Correo</th>
-                <th className="text-left px-4 py-3 text-gray-500 font-medium">Ciudad / Estado</th>
-                <th className="text-left px-4 py-3 text-gray-500 font-medium">Materiales</th>
-                <th className="text-left px-4 py-3 text-gray-500 font-medium">Status</th>
-                <th className="text-left px-4 py-3 text-gray-500 font-medium">Comentarios</th>
-                <th className="px-4 py-3 w-20" />
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {clientes.map((c) => {
-                const contactos = (c.contactos ?? []) as Contacto[];
-                const cp = contactos.find((ct) => ct.nombre) ?? contactos[0];
-                const otrosContactos = contactos.length - 1;
-                return (
-                  <tr key={c.id} className="hover:bg-gray-50 transition-colors align-top">
-                    {/* SAE */}
-                    <td className="px-4 py-3 text-gray-400 font-mono text-xs">
-                      {c.sae ?? "—"}
-                    </td>
+        {filtered.length === 0 ? (
+          <div className="text-center py-16 text-gray-400 text-sm">
+            No hay clientes en esta categoría
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm min-w-[900px]">
+              <thead className="bg-gray-50 border-b border-gray-100">
+                <tr>
+                  <th className="text-left px-4 py-3 text-gray-500 font-medium w-16">SAE</th>
+                  <th className="text-left px-4 py-3 text-gray-500 font-medium">Razón Social</th>
+                  <th className="text-left px-4 py-3 text-gray-500 font-medium">Contacto</th>
+                  <th className="text-left px-4 py-3 text-gray-500 font-medium">Teléfono(s)</th>
+                  <th className="text-left px-4 py-3 text-gray-500 font-medium">Correo</th>
+                  <th className="text-left px-4 py-3 text-gray-500 font-medium">Ciudad / Estado</th>
+                  <th className="text-left px-4 py-3 text-gray-500 font-medium">Materiales</th>
+                  {activeTab === "todos" && (
+                    <th className="text-left px-4 py-3 text-gray-500 font-medium">Status</th>
+                  )}
+                  <th className="text-left px-4 py-3 text-gray-500 font-medium">Comentarios</th>
+                  <th className="px-4 py-3 w-20" />
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {filtered.map((c) => {
+                  const contactos = (c.contactos ?? []) as Contacto[];
+                  const cp = contactos.find((ct) => ct.nombre) ?? contactos[0];
+                  const otrosContactos = contactos.length - 1;
+                  return (
+                    <tr key={c.id} className="hover:bg-gray-50 transition-colors align-top">
+                      <td className="px-4 py-3 text-gray-400 font-mono text-xs">{c.sae ?? "—"}</td>
 
-                    {/* Razón Social */}
-                    <td className="px-4 py-3 font-medium text-gray-900">
-                      {c.razon_social}
-                    </td>
+                      <td className="px-4 py-3 font-medium text-gray-900">{c.razon_social}</td>
 
-                    {/* Contacto */}
-                    <td className="px-4 py-3 text-gray-700">
-                      {cp?.nombre || <span className="text-gray-400 italic">Sin nombre</span>}
-                      {otrosContactos > 0 && (
-                        <span className="ml-1 text-xs text-blue-500">+{otrosContactos}</span>
-                      )}
-                    </td>
-
-                    {/* Teléfonos */}
-                    <td className="px-4 py-3 text-gray-600">
-                      {cp?.telefonos?.map((t, i) => (
-                        <div key={i}>{t}</div>
-                      ))}
-                    </td>
-
-                    {/* Correo */}
-                    <td className="px-4 py-3 text-gray-600 max-w-[180px]">
-                      <span className="break-all text-xs">
-                        {cp?.correo ?? <span className="text-gray-400">—</span>}
-                      </span>
-                    </td>
-
-                    {/* Ciudad */}
-                    <td className="px-4 py-3 text-gray-600">{c.ciudad}</td>
-
-                    {/* Materiales */}
-                    <td className="px-4 py-3">
-                      <div className="flex flex-wrap gap-1">
-                        {(c.materiales ?? []).length === 0 ? (
-                          <span className="text-gray-400 text-xs">—</span>
-                        ) : (
-                          (c.materiales as string[]).map((m) => (
-                            <span
-                              key={m}
-                              className="text-xs bg-gray-100 text-gray-700 px-1.5 py-0.5 rounded"
-                            >
-                              {m}
-                            </span>
-                          ))
+                      <td className="px-4 py-3 text-gray-700">
+                        {cp?.nombre || <span className="text-gray-400 italic">Sin nombre</span>}
+                        {otrosContactos > 0 && (
+                          <span className="ml-1 text-xs text-blue-500">+{otrosContactos}</span>
                         )}
-                      </div>
-                    </td>
+                      </td>
 
-                    {/* Status */}
-                    <td className="px-4 py-3">
-                      {c.status ? (
-                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusBadge[c.status]}`}>
-                          {c.status}
+                      <td className="px-4 py-3 text-gray-600">
+                        {cp?.telefonos?.map((t, i) => <div key={i}>{t}</div>)}
+                      </td>
+
+                      <td className="px-4 py-3 text-gray-600 max-w-[180px]">
+                        <span className="break-all text-xs">
+                          {cp?.correo ?? <span className="text-gray-400">—</span>}
                         </span>
-                      ) : (
-                        <span className="text-xs text-gray-400">—</span>
-                      )}
-                    </td>
+                      </td>
 
-                    {/* Comentarios */}
-                    <td className="px-4 py-3 text-xs text-gray-500 max-w-[200px]">
-                      {c.comentarios ? (
-                        <span className="line-clamp-2" title={c.comentarios}>
-                          {c.comentarios}
-                        </span>
-                      ) : (
-                        <span className="text-gray-300">—</span>
-                      )}
-                    </td>
+                      <td className="px-4 py-3 text-gray-600">{c.ciudad}</td>
 
-                    {/* Acciones */}
-                    <td className="px-4 py-3 text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        <Link
-                          href={`/clientes/${c.id}`}
-                          title="Ver cliente"
-                          className="text-gray-400 hover:text-blue-600 transition-colors p-1 rounded hover:bg-blue-50"
-                        >
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                          </svg>
-                        </Link>
-                        <Link
-                          href={`/clientes/${c.id}/editar`}
-                          title="Editar cliente"
-                          className="text-gray-400 hover:text-amber-600 transition-colors p-1 rounded hover:bg-amber-50"
-                        >
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                          </svg>
-                        </Link>
-                        <DeleteClienteButton id={c.id} />
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+                      <td className="px-4 py-3">
+                        <div className="flex flex-wrap gap-1">
+                          {(c.materiales ?? []).length === 0 ? (
+                            <span className="text-gray-400 text-xs">—</span>
+                          ) : (
+                            (c.materiales as string[]).map((m) => (
+                              <span key={m} className="text-xs bg-gray-100 text-gray-700 px-1.5 py-0.5 rounded">
+                                {m}
+                              </span>
+                            ))
+                          )}
+                        </div>
+                      </td>
+
+                      {activeTab === "todos" && (
+                        <td className="px-4 py-3">
+                          {c.status ? (
+                            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_BADGE[c.status]}`}>
+                              {c.status}
+                            </span>
+                          ) : (
+                            <span className="text-xs text-gray-400">—</span>
+                          )}
+                        </td>
+                      )}
+
+                      <td className="px-4 py-3 text-xs text-gray-500 max-w-[200px]">
+                        {c.comentarios ? (
+                          <span className="line-clamp-2" title={c.comentarios}>{c.comentarios}</span>
+                        ) : (
+                          <span className="text-gray-300">—</span>
+                        )}
+                      </td>
+
+                      <td className="px-4 py-3 text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <Link
+                            href={`/clientes/${c.id}`}
+                            title="Ver cliente"
+                            className="text-gray-400 hover:text-blue-600 transition-colors p-1 rounded hover:bg-blue-50"
+                          >
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                          </Link>
+                          <Link
+                            href={`/clientes/${c.id}/editar`}
+                            title="Editar cliente"
+                            className="text-gray-400 hover:text-amber-600 transition-colors p-1 rounded hover:bg-amber-50"
+                          >
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                          </Link>
+                          <DeleteClienteButton id={c.id} />
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );
