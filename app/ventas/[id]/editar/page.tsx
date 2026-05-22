@@ -22,6 +22,13 @@ export default async function EditarVentaPage({ params }: Props) {
   const venta = ventaData;
   const clientes = (clientesData ?? []) as Array<{ id: string; razon_social: string }>;
 
+  const { data: materialesData } = await supabase
+    .from("materiales")
+    .select("id, nombre")
+    .order("id");
+
+  const materiales = (materialesData ?? []) as Array<{ id: number; nombre: string }>;
+
   const boundAction = updateVentaAction.bind(null, id);
 
   return (
@@ -55,7 +62,7 @@ export default async function EditarVentaPage({ params }: Props) {
         }}
         submitLabel="Guardar Cambios"
         clientes={clientes}
-        materiales={[]}
+        materiales={materiales}
       />
     </div>
   );

@@ -44,6 +44,14 @@ function IconChart() {
     </svg>
   );
 }
+function IconPackage() {
+  return (
+    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+      <path strokeLinecap="round" strokeLinejoin="round"
+        d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+    </svg>
+  );
+}
 
 // ── Nav config ────────────────────────────────────────────────────────────────
 
@@ -53,6 +61,7 @@ const navItems = [
   { href: "/ventas",        label: "Ventas",        icon: <IconTrending />},
   { href: "/recordatorios", label: "Recordatorios", icon: <IconBell />    },
   { href: "/resultados",    label: "Resultados",    icon: <IconChart />   },
+  { href: "/materiales",    label: "Materiales",    icon: <IconPackage /> },
 ];
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -113,7 +122,7 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose:
 
         {/* ── Navigation ── */}
         <nav className="flex-1 px-3 py-5 space-y-0.5 overflow-y-auto">
-          <p className="text-[10px] font-semibold text-slate-600 uppercase tracking-widest px-3 mb-3">
+          <p             className="text-[10px] font-semibold text-slate-600 dark:text-slate-500 uppercase tracking-widest px-3 mb-3">
             Menú
           </p>
           {navItems.map((item) => {

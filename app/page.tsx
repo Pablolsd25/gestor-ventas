@@ -6,10 +6,10 @@ import Link from "next/link";
 // ── Static maps ───────────────────────────────────────────────────────────────
 
 const estadoColor: Record<string, string> = {
-  ganada:     "bg-emerald-100 text-emerald-700",
-  perdida:    "bg-red-100 text-red-700",
-  en_proceso: "bg-amber-100 text-amber-700",
-  propuesta:  "bg-blue-100 text-blue-700",
+  ganada:     "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300",
+  perdida:    "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300",
+  en_proceso: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300",
+  propuesta:  "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300",
 };
 const estadoLabel: Record<string, string> = {
   ganada:     "Ganada",
@@ -18,9 +18,9 @@ const estadoLabel: Record<string, string> = {
   propuesta:  "Propuesta",
 };
 const prioridadColor: Record<string, string> = {
-  alta:  "bg-red-100 text-red-700",
-  media: "bg-amber-100 text-amber-700",
-  baja:  "bg-gray-100 text-gray-600",
+  alta:  "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300",
+  media: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300",
+  baja:  "bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-400",
 };
 const prioridadLabel: Record<string, string> = {
   alta:  "Alta",
@@ -113,7 +113,7 @@ function KpiCard({
     <div className={`rounded-xl border ${border} ${bg} p-5 flex items-start justify-between gap-3`}>
       <div className="min-w-0">
         <p className={`text-2xl font-bold leading-none ${color}`}>{value}</p>
-        <p className="text-sm text-gray-500 mt-2 leading-snug">{label}</p>
+        <p className="text-sm text-gray-500 dark:text-slate-400 mt-2 leading-snug">{label}</p>
       </div>
       <div className={`shrink-0 w-10 h-10 rounded-xl ${bg} border ${border} flex items-center justify-center`}>
         {icon}
@@ -127,7 +127,7 @@ function KpiCard({
 function SectionHeader({ title, href, linkLabel }: { title: string; href?: string; linkLabel?: string }) {
   return (
     <div className="flex items-center justify-between mb-4">
-      <h3 className="font-semibold text-gray-800 text-base">{title}</h3>
+      <h3 className="font-semibold text-gray-800 dark:text-slate-100 text-base">{title}</h3>
       {href && (
         <Link href={href} className="text-xs text-blue-600 hover:text-blue-700 font-medium hover:underline transition-colors">
           {linkLabel ?? "Ver todos"} →
@@ -189,7 +189,7 @@ export default async function DashboardPage() {
       {atrasados > 0 && (
         <Link
           href="/recordatorios"
-          className="flex items-center gap-3 px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700 hover:bg-red-100 transition-colors"
+          className="flex items-center gap-3 px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700 hover:bg-red-100 dark:bg-red-900/30 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/50 transition-colors"
         >
           <svg className="w-4 h-4 text-red-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round"
@@ -207,28 +207,28 @@ export default async function DashboardPage() {
       {/* ── Cartera de clientes ───────────────────────────────── */}
       <section>
         <div className="flex items-center justify-between mb-3">
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Cartera de Clientes</p>
-          <Link href="/clientes" className="text-xs text-blue-600 hover:underline font-medium">Ver todos →</Link>
+          <p className="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wider">Cartera de Clientes</p>
+          <Link href="/clientes" className="text-xs text-blue-600 dark:text-blue-400 hover:underline font-medium">Ver todos →</Link>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <KpiCard label="En Venta"       value={enVenta}    color="text-emerald-600" bg="bg-emerald-50"  border="border-emerald-100" icon={<IcoCheckBadge cls="w-5 h-5 text-emerald-500" />} />
-          <KpiCard label="Crédito"        value={credito}    color="text-blue-600"   bg="bg-blue-50"     border="border-blue-100"    icon={<IcoCreditCard cls="w-5 h-5 text-blue-500" />}   />
-          <KpiCard label="Prospectos"     value={prospectos} color="text-amber-600"  bg="bg-amber-50"    border="border-amber-100"   icon={<IcoEye cls="w-5 h-5 text-amber-500" />}         />
-          <KpiCard label="Sin clasificar" value={sinStatus}  color="text-gray-500"   bg="bg-gray-50"     border="border-gray-200"    icon={<IcoQuestion cls="w-5 h-5 text-gray-400" />}     />
+          <KpiCard label="En Venta"       value={enVenta}    color="text-emerald-600 dark:text-emerald-400" bg="bg-emerald-50 dark:bg-emerald-900/30"  border="border-emerald-100 dark:border-emerald-800" icon={<IcoCheckBadge cls="w-5 h-5 text-emerald-500" />} />
+          <KpiCard label="Crédito"        value={credito}    color="text-blue-600 dark:text-blue-400"   bg="bg-blue-50 dark:bg-blue-900/30"     border="border-blue-100 dark:border-blue-800"    icon={<IcoCreditCard cls="w-5 h-5 text-blue-500" />}   />
+          <KpiCard label="Prospectos"     value={prospectos} color="text-amber-600 dark:text-amber-400"  bg="bg-amber-50 dark:bg-amber-900/30"    border="border-amber-100 dark:border-amber-800"   icon={<IcoEye cls="w-5 h-5 text-amber-500" />}         />
+          <KpiCard label="Sin clasificar" value={sinStatus}  color="text-gray-500 dark:text-slate-400"   bg="bg-gray-50 dark:bg-slate-800"     border="border-gray-200 dark:border-slate-600"    icon={<IcoQuestion cls="w-5 h-5 text-gray-400" />}     />
         </div>
       </section>
 
       {/* ── Resumen de ventas ─────────────────────────────────── */}
       <section>
         <div className="flex items-center justify-between mb-3">
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Resumen de Ventas</p>
-          <Link href="/ventas" className="text-xs text-blue-600 hover:underline font-medium">Ver todas →</Link>
+          <p className="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wider">Resumen de Ventas</p>
+          <Link href="/ventas" className="text-xs text-blue-600 dark:text-blue-400 hover:underline font-medium">Ver todas →</Link>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <KpiCard label="Total Facturado" value={formatMonto(totalFacturado)} color="text-emerald-600" bg="bg-white"      border="border-gray-100"    icon={<IcoCash cls="w-5 h-5 text-emerald-500" />}  />
-          <KpiCard label="Pipeline Activo" value={formatMonto(pipeline)}       color="text-amber-600"  bg="bg-white"      border="border-gray-100"    icon={<IcoFunnel cls="w-5 h-5 text-amber-500" />}  />
-          <KpiCard label="Ton. Entregadas" value={`${tonGanadas} ton`}         color="text-blue-600"   bg="bg-white"      border="border-gray-100"    icon={<IcoCube cls="w-5 h-5 text-blue-500" />}     />
-          <KpiCard label="Recordatorios"   value={pendientes}                   color="text-red-600"    bg="bg-white"      border="border-gray-100"    icon={<IcoBell cls="w-5 h-5 text-red-500" />}      />
+          <KpiCard label="Total Facturado" value={formatMonto(totalFacturado)} color="text-emerald-600 dark:text-emerald-400" bg="bg-white dark:bg-slate-800"      border="border-gray-100 dark:border-slate-700"    icon={<IcoCash cls="w-5 h-5 text-emerald-500" />}  />
+          <KpiCard label="Pipeline Activo" value={formatMonto(pipeline)}       color="text-amber-600 dark:text-amber-400"  bg="bg-white dark:bg-slate-800"      border="border-gray-100 dark:border-slate-700"    icon={<IcoFunnel cls="w-5 h-5 text-amber-500" />}  />
+          <KpiCard label="Ton. Entregadas" value={`${tonGanadas} ton`}         color="text-blue-600 dark:text-blue-400"   bg="bg-white dark:bg-slate-800"      border="border-gray-100 dark:border-slate-700"    icon={<IcoCube cls="w-5 h-5 text-blue-500" />}     />
+          <KpiCard label="Recordatorios"   value={pendientes}                   color="text-red-600 dark:text-red-400"    bg="bg-white dark:bg-slate-800"      border="border-gray-100 dark:border-slate-700"    icon={<IcoBell cls="w-5 h-5 text-red-500" />}      />
         </div>
       </section>
 
@@ -236,19 +236,19 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
 
         {/* Últimas ventas */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 p-5">
           <SectionHeader title="Últimas Ventas" href="/ventas" linkLabel="Ver todas" />
-          <div className="divide-y divide-gray-50">
+          <div className="divide-y divide-gray-50 dark:divide-slate-700/50">
             {ultimasVentas.length === 0 && (
-              <p className="text-sm text-gray-400 text-center py-6">Sin ventas registradas</p>
+              <p className="text-sm text-gray-400 dark:text-slate-500 text-center py-6">Sin ventas registradas</p>
             )}
             {ultimasVentas.map((v) => (
               <div key={v.id} className="flex items-center justify-between py-3 gap-3">
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-gray-800 truncate">
+                  <p className="text-sm font-medium text-gray-800 dark:text-slate-100 truncate">
                     {v.clientes?.razon_social ?? "—"}
                   </p>
-                  <p className="text-xs text-gray-400 truncate mt-0.5">
+                  <p className="text-xs text-gray-400 dark:text-slate-500 truncate mt-0.5">
                     {v.materiales?.nombre ?? v.descripcion}
                     {v.cantidad ? ` · ${v.cantidad} ton` : ""}
                   </p>
@@ -257,7 +257,7 @@ export default async function DashboardPage() {
                   <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${estadoColor[v.estado]}`}>
                     {estadoLabel[v.estado]}
                   </span>
-                  <span className="text-sm font-semibold text-gray-700 tabular-nums">
+                  <span className="text-sm font-semibold text-gray-700 dark:text-slate-300 tabular-nums">
                     {formatMonto(Number(v.monto))}
                   </span>
                 </div>
@@ -265,8 +265,8 @@ export default async function DashboardPage() {
             ))}
           </div>
           {ultimasVentas.length > 0 && (
-            <div className="mt-4 pt-3 border-t border-gray-50">
-              <Link href="/ventas" className="block text-center text-xs text-blue-600 hover:underline font-medium">
+            <div className="mt-4 pt-3 border-t border-gray-50 dark:border-slate-700/50">
+              <Link href="/ventas" className="block text-center text-xs text-blue-600 dark:text-blue-400 hover:underline font-medium">
                 Ver todas las ventas →
               </Link>
             </div>
@@ -274,22 +274,22 @@ export default async function DashboardPage() {
         </div>
 
         {/* Recordatorios pendientes */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 p-5">
           <SectionHeader title="Recordatorios Pendientes" href="/recordatorios" linkLabel="Ver todos" />
-          <div className="divide-y divide-gray-50">
+          <div className="divide-y divide-gray-50 dark:divide-slate-700/50">
             {proximosRecordatorios.length === 0 && (
-              <p className="text-sm text-gray-400 text-center py-6">Sin recordatorios pendientes</p>
+              <p className="text-sm text-gray-400 dark:text-slate-500 text-center py-6">Sin recordatorios pendientes</p>
             )}
             {proximosRecordatorios.map((r) => {
               const isOverdue = r.fecha < today;
               return (
                 <div key={r.id} className="flex items-start justify-between py-3 gap-3">
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-gray-800 truncate">{r.titulo}</p>
+                    <p className="text-sm font-medium text-gray-800 dark:text-slate-100 truncate">{r.titulo}</p>
                     {r.clientes?.razon_social && (
-                      <p className="text-xs text-gray-500 truncate mt-0.5">{r.clientes.razon_social}</p>
+                      <p className="text-xs text-gray-500 dark:text-slate-400 truncate mt-0.5">{r.clientes.razon_social}</p>
                     )}
-                    <p className={`text-xs mt-0.5 ${isOverdue ? "text-red-500 font-medium" : "text-gray-400"}`}>
+                    <p className={`text-xs mt-0.5 ${isOverdue ? "text-red-500 font-medium" : "text-gray-400 dark:text-slate-500"}`}>
                       {r.fecha} · {r.hora.slice(0, 5)}
                       {isOverdue ? " · Vencido" : ""}
                     </p>
@@ -302,8 +302,8 @@ export default async function DashboardPage() {
             })}
           </div>
           {proximosRecordatorios.length > 0 && (
-            <div className="mt-4 pt-3 border-t border-gray-50">
-              <Link href="/recordatorios" className="block text-center text-xs text-blue-600 hover:underline font-medium">
+            <div className="mt-4 pt-3 border-t border-gray-50 dark:border-slate-700/50">
+              <Link href="/recordatorios" className="block text-center text-xs text-blue-600 dark:text-blue-400 hover:underline font-medium">
                 Ver todos los recordatorios →
               </Link>
             </div>
@@ -313,7 +313,7 @@ export default async function DashboardPage() {
 
       {/* ── Clientes con comentarios ──────────────────────────── */}
       {clientes.filter((c) => c.comentarios).length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 p-5">
           <SectionHeader title="Clientes con Notas" href="/clientes" linkLabel="Ver todos" />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {clientes
@@ -325,30 +325,30 @@ export default async function DashboardPage() {
                   <Link
                     key={c.id}
                     href={`/clientes/${c.id}`}
-                    className="flex items-start gap-3 p-3.5 bg-amber-50 rounded-xl border border-amber-100 hover:bg-amber-100 transition-colors group"
+                    className="flex items-start gap-3 p-3.5 bg-amber-50 rounded-xl border border-amber-100 hover:bg-amber-100 dark:bg-amber-900/20 dark:border-amber-800/40 dark:hover:bg-amber-900/30 transition-colors group"
                   >
-                    <div className="w-8 h-8 rounded-lg bg-amber-200 flex items-center justify-center shrink-0">
-                      <span className="text-amber-700 text-xs font-bold">
+                    <div className="w-8 h-8 rounded-lg bg-amber-200 dark:bg-amber-800 flex items-center justify-center shrink-0">
+                      <span className="text-amber-700 dark:text-amber-200 text-xs font-bold">
                         {c.razon_social.slice(0, 2).toUpperCase()}
                       </span>
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="font-medium text-sm text-gray-800 truncate">
+                        <span className="font-medium text-sm text-gray-800 dark:text-slate-100 truncate">
                           {c.razon_social}
                         </span>
                         {c.sae && (
-                          <span className="text-xs text-gray-400 shrink-0">SAE {c.sae}</span>
+                          <span className="text-xs text-gray-400 dark:text-slate-500 shrink-0">SAE {c.sae}</span>
                         )}
                       </div>
                       {cp?.nombre && (
-                        <p className="text-xs text-gray-500 mt-0.5 truncate">{cp.nombre}</p>
+                        <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5 truncate">{cp.nombre}</p>
                       )}
-                      <p className="text-xs text-amber-700 mt-1 italic line-clamp-2">
+                      <p className="text-xs text-amber-700 dark:text-amber-300 mt-1 italic line-clamp-2">
                         {c.comentarios}
                       </p>
                     </div>
-                    <svg className="w-4 h-4 text-gray-300 group-hover:text-gray-500 shrink-0 mt-0.5 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <svg className="w-4 h-4 text-gray-300 group-hover:text-gray-500 dark:text-slate-600 dark:group-hover:text-slate-400 shrink-0 mt-0.5 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                     </svg>
                   </Link>

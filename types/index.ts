@@ -1,19 +1,7 @@
 // ─── Cliente ────────────────────────────────────────────────────────────────
 export type ClienteStatus = "Venta" | "Credito" | "Prospecto";
 
-export const MATERIALES = [
-  "1. ALAMBRE RECOCIDO",
-  "2. RECOCIDO INDUSTRIAL",
-  "3. RECOCIDO SUAVE",
-  "4. PULIDO EN ROLLO",
-  "5. PULIDO EN BOBINA",
-  "6. GALVANIZADO",
-  "7. TREFILADO",
-  "8. CORRUGADO",
-  "9. SEMIFLECHA",
-] as const;
-
-export type Material = (typeof MATERIALES)[number] | (string & {});
+export type Material = string;
 
 export interface Contacto {
   nombre: string;       // puede ser vacío si no se tiene el dato

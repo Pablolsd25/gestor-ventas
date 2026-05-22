@@ -1,8 +1,18 @@
 import ClienteForm from "@/components/clientes/ClienteForm";
 import { createClienteAction } from "../actions";
+import { createSupabaseServerClient } from "@/lib/supabase-server";
 import Link from "next/link";
 
-export default function NuevoClientePage() {
+export default async function NuevoClientePage() {
+  const supabase = await createSupabaseServerClient() as any;
+
+  const { data: materialesData } = await supabase
+    .from("materiales")
+    .select("id, nombre")
+    .order("id");
+
+  const materiales = (materialesData ?? []) as Array<{ id: number; nombre: string }>;
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
@@ -21,6 +31,7 @@ export default function NuevoClientePage() {
       <ClienteForm
         action={createClienteAction}
         submitLabel="Crear Cliente"
+        materiales={materiales}
       />
     </div>
   );

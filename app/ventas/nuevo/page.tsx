@@ -13,6 +13,13 @@ export default async function NuevaVentaPage() {
 
   const clientes = (clientesData ?? []) as Array<{ id: string; razon_social: string }>;
 
+  const { data: materialesData } = await supabase
+    .from("materiales")
+    .select("id, nombre")
+    .order("id");
+
+  const materiales = (materialesData ?? []) as Array<{ id: number; nombre: string }>;
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
@@ -32,7 +39,7 @@ export default async function NuevaVentaPage() {
         action={createVentaAction}
         submitLabel="Crear Venta"
         clientes={clientes}
-        materiales={[]}
+        materiales={materiales}
       />
     </div>
   );

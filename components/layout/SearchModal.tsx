@@ -13,9 +13,9 @@ const TYPE_LABEL: Record<SearchResult["type"], string> = {
 };
 
 const TYPE_BADGE: Record<SearchResult["type"], string> = {
-  cliente:      "bg-emerald-100 text-emerald-700",
-  venta:        "bg-blue-100 text-blue-700",
-  recordatorio: "bg-amber-100 text-amber-700",
+  cliente:      "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300",
+  venta:        "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300",
+  recordatorio: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300",
 };
 
 const TYPE_ICON: Record<SearchResult["type"], React.ReactNode> = {
@@ -125,10 +125,10 @@ export default function SearchModal({ isOpen, onClose }: Props) {
       />
 
       {/* Modal */}
-      <div className="search-modal relative w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden ring-1 ring-black/8">
+      <div className="search-modal relative w-full max-w-lg bg-white dark:bg-slate-800 rounded-2xl shadow-2xl overflow-hidden ring-1 ring-black/8 dark:ring-white/10">
 
         {/* ── Input row ── */}
-        <div className="flex items-center gap-3 px-4 py-3.5 border-b border-gray-100">
+        <div className="flex items-center gap-3 px-4 py-3.5 border-b border-gray-100 dark:border-slate-700">
           {isPending ? (
             <span className="w-5 h-5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin shrink-0" />
           ) : (
@@ -144,7 +144,7 @@ export default function SearchModal({ isOpen, onClose }: Props) {
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Buscar clientes, ventas, recordatorios…"
-            className="flex-1 text-sm text-gray-800 placeholder-gray-400 bg-transparent outline-none"
+            className="flex-1 text-sm text-gray-800 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 bg-transparent outline-none"
             aria-label="Búsqueda global"
             autoComplete="off"
           />
@@ -152,7 +152,7 @@ export default function SearchModal({ isOpen, onClose }: Props) {
           {query && (
             <button
               onClick={() => { setQuery(""); inputRef.current?.focus(); }}
-              className="text-gray-400 hover:text-gray-600 p-0.5 rounded-md transition-colors shrink-0"
+              className="text-gray-400 hover:text-gray-600 dark:text-slate-500 dark:hover:text-slate-300 p-0.5 rounded-md transition-colors shrink-0"
               aria-label="Limpiar búsqueda"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -161,14 +161,14 @@ export default function SearchModal({ isOpen, onClose }: Props) {
             </button>
           )}
 
-          <kbd className="hidden sm:inline-flex items-center text-[11px] text-gray-400 border border-gray-200 rounded-md px-1.5 py-0.5 font-mono bg-gray-50 shrink-0">
+          <kbd className="hidden sm:inline-flex items-center text-[11px] text-gray-400 dark:text-slate-500 border border-gray-200 dark:border-slate-600 rounded-md px-1.5 py-0.5 font-mono bg-gray-50 dark:bg-slate-700 shrink-0">
             Esc
           </kbd>
         </div>
 
         {/* ── Results ── */}
         {results.length > 0 && (
-          <div className="max-h-72 overflow-y-auto divide-y divide-gray-50" role="listbox">
+          <div className="max-h-72 overflow-y-auto divide-y divide-gray-50 dark:divide-slate-700/50" role="listbox">
             {results.map((r, i) => (
               <button
                 key={`${r.type}-${r.id}`}
@@ -178,7 +178,7 @@ export default function SearchModal({ isOpen, onClose }: Props) {
                 onMouseEnter={() => setActiveIdx(i)}
                 className={[
                   "w-full flex items-center gap-3 px-4 py-3 text-left transition-colors",
-                  i === activeIdx ? "bg-blue-50" : "hover:bg-gray-50",
+                  i === activeIdx ? "bg-blue-50 dark:bg-blue-900/30" : "hover:bg-gray-50 dark:hover:bg-slate-700/50",
                 ].join(" ")}
               >
                 {/* Icon + badge */}
@@ -189,14 +189,14 @@ export default function SearchModal({ isOpen, onClose }: Props) {
 
                 {/* Text */}
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-800 truncate">{r.title}</p>
+                  <p className="text-sm font-medium text-gray-800 dark:text-slate-100 truncate">{r.title}</p>
                   {r.subtitle && (
-                    <p className="text-xs text-gray-400 truncate mt-0.5">{r.subtitle}</p>
+                    <p className="text-xs text-gray-400 dark:text-slate-500 truncate mt-0.5">{r.subtitle}</p>
                   )}
                 </div>
 
                 {/* Chevron */}
-                <svg className={`w-4 h-4 shrink-0 transition-colors ${i === activeIdx ? "text-blue-400" : "text-gray-200"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <svg className={`w-4 h-4 shrink-0 transition-colors ${i === activeIdx ? "text-blue-400" : "text-gray-200 dark:text-slate-600"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                 </svg>
               </button>
@@ -207,20 +207,20 @@ export default function SearchModal({ isOpen, onClose }: Props) {
         {/* ── Empty state ── */}
         {showEmpty && (
           <div className="py-12 px-4 text-center">
-            <svg className="w-9 h-9 text-gray-200 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <svg className="w-9 h-9 text-gray-200 dark:text-slate-600 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
-            <p className="text-sm font-medium text-gray-600">
+            <p className="text-sm font-medium text-gray-600 dark:text-slate-300">
               Sin resultados para &ldquo;{query}&rdquo;
             </p>
-            <p className="text-xs text-gray-400 mt-1">Prueba con otro término</p>
+            <p className="text-xs text-gray-400 dark:text-slate-500 mt-1">Prueba con otro término</p>
           </div>
         )}
 
         {/* ── Hint state ── */}
         {showHint && (
           <div className="px-4 py-4">
-            <p className="text-xs font-medium text-gray-400 mb-2.5 uppercase tracking-wide">
+            <p className="text-xs font-medium text-gray-400 dark:text-slate-500 mb-2.5 uppercase tracking-wide">
               Busca en
             </p>
             <div className="flex flex-wrap gap-2">
@@ -236,14 +236,14 @@ export default function SearchModal({ isOpen, onClose }: Props) {
 
         {/* ── Keyboard footer ── */}
         {results.length > 0 && (
-          <div className="px-4 py-2.5 border-t border-gray-100 bg-gray-50 flex items-center gap-5">
+          <div className="px-4 py-2.5 border-t border-gray-100 dark:border-slate-700 bg-gray-50 dark:bg-slate-800/80 flex items-center gap-5">
             {[
               { key: "↑↓",  desc: "navegar" },
               { key: "↵",   desc: "abrir"   },
               { key: "Esc", desc: "cerrar"  },
             ].map(({ key, desc }) => (
-              <span key={key} className="flex items-center gap-1.5 text-[11px] text-gray-400">
-                <kbd className="font-mono border border-gray-300 rounded px-1 py-0.5 bg-white text-gray-500 text-[10px]">
+              <span key={key} className="flex items-center gap-1.5 text-[11px] text-gray-400 dark:text-slate-500">
+                <kbd className="font-mono border border-gray-300 dark:border-slate-600 rounded px-1 py-0.5 bg-white dark:bg-slate-700 text-gray-500 dark:text-slate-400 text-[10px]">
                   {key}
                 </kbd>
                 {desc}

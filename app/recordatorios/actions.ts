@@ -50,7 +50,7 @@ export async function createRecordatorioAction(
   }
 
   revalidatePath("/recordatorios");
-  redirect("/recordatorios");
+  redirect("/recordatorios?toast=Recordatorio+creado+exitosamente");
 }
 
 export async function updateRecordatorioAction(
@@ -94,7 +94,7 @@ export async function updateRecordatorioAction(
   }
 
   revalidatePath("/recordatorios");
-  redirect("/recordatorios");
+  redirect("/recordatorios?toast=Recordatorio+actualizado+exitosamente");
 }
 
 export async function completeRecordatorioAction(
@@ -133,5 +133,5 @@ export async function deleteRecordatorioAction(
   }
 
   revalidatePath("/recordatorios");
-  redirect("/recordatorios");
+  redirect("/recordatorios?toast=Recordatorio+eliminado+correctamente");
 }

@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useActionState, useEffect, useRef } from "react";
-import { MATERIALES } from "@/types/index";
+import React, { useActionState, useEffect, useRef, useCallback } from "react";
 import type { ActionState } from "@/app/clientes/actions";
 
 interface ContactoData {
@@ -9,6 +8,11 @@ interface ContactoData {
   nombre: string;
   telefonos: string[];
   correo: string | null;
+}
+
+interface MaterialOption {
+  id: number;
+  nombre: string;
 }
 
 interface FormProps {
@@ -22,10 +26,11 @@ interface FormProps {
     status: "Venta" | "Credito" | "Prospecto" | "";
     comentarios: string;
     contactos: ContactoData[];
-    materiales: string[];
+    materiales: string[] | number[];
   };
   submitLabel: string;
   isEdit?: boolean;
+  materiales: MaterialOption[];
 }
 
 function emptyContacto(): ContactoData {
@@ -37,16 +42,40 @@ export default function ClienteForm({
   initialData,
   submitLabel,
   isEdit = false,
+  materiales: materialOptions,
 }: FormProps) {
-  const [state, formAction, pending] = useActionState(action, undefined);
   const formRef = useRef<HTMLFormElement>(null);
 
   const [contactos, setContactos] = React.useState<ContactoData[]>(
     initialData?.contactos?.length ? initialData.contactos : [{ ...emptyContacto() }]
   );
-  const [selectedMaterials, setSelectedMaterials] = React.useState<Set<string>>(
-    new Set(initialData?.materiales ?? [])
+  const [selectedMaterials, setSelectedMaterials] = React.useState<Set<number>>(
+    () => {
+      const raw = initialData?.materiales ?? [];
+      const ids: number[] = raw.map((v) => {
+        if (typeof v === "number") return v;
+        const match = materialOptions.find((m) => m.nombre === v);
+        return match ? match.id : -1;
+      });
+      return new Set(ids.filter((id) => id > 0));
+    }
   );
+
+  const contactosRef = useRef(contactos);
+  contactosRef.current = contactos;
+  const materialesRef = useRef(selectedMaterials);
+  materialesRef.current = selectedMaterials;
+
+  const wrappedAction = useCallback(
+    (prev: ActionState | undefined, formData: FormData) => {
+      formData.set("contactos", JSON.stringify(contactosRef.current));
+      formData.set("materiales", JSON.stringify(Array.from(materialesRef.current)));
+      return action(prev, formData);
+    },
+    [action]
+  );
+
+  const [state, formAction, pending] = useActionState(wrappedAction, undefined);
 
   useEffect(() => {
     if (state && "error" in state && state.error) {
@@ -106,80 +135,72 @@ export default function ClienteForm({
     });
   }
 
-  function toggleMaterial(material: string) {
+  function toggleMaterial(id: number) {
     setSelectedMaterials((prev) => {
       const next = new Set(prev);
-      if (next.has(material)) {
-        next.delete(material);
+      if (next.has(id)) {
+        next.delete(id);
       } else {
-        next.add(material);
+        next.add(id);
       }
       return next;
     });
   }
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const fd = new FormData(e.currentTarget);
-    fd.set("contactos", JSON.stringify(contactos));
-    fd.set("materiales", JSON.stringify(Array.from(selectedMaterials)));
-    formAction(fd);
-  }
-
   return (
-    <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
+    <form ref={formRef} action={formAction} className="space-y-6">
       {state && "error" in state && state.error && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+        <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700 dark:bg-red-900/30 dark:border-red-800 dark:text-red-300">
           {state.error}
         </div>
       )}
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-5">
-        <h3 className="font-semibold text-gray-800 text-base border-b border-gray-100 pb-3">
+      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 p-6 space-y-5">
+        <h3 className="font-semibold text-gray-800 dark:text-slate-100 text-base border-b border-gray-100 dark:border-slate-700 pb-3">
           Datos del Cliente
         </h3>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">
+          <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">
             Raz&oacute;n Social <span className="text-red-500">*</span>
           </label>
           <input
             name="razon_social"
             required
             defaultValue={initialData?.razon_social ?? ""}
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-4 py-2.5 border border-gray-300 dark:border-slate-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-700 dark:text-slate-100 dark:placeholder-slate-400"
             placeholder="Nombre o raz&oacute;n social de la empresa"
           />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">
               C&oacute;digo SAE
             </label>
             <input
               name="sae"
               defaultValue={initialData?.sae ?? ""}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2.5 border border-gray-300 dark:border-slate-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-700 dark:text-slate-100 dark:placeholder-slate-400"
               placeholder="Ej: 001, 002…"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">
               Ciudad / Estado <span className="text-red-500">*</span>
             </label>
             <input
               name="ciudad"
               required
               defaultValue={initialData?.ciudad ?? ""}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2.5 border border-gray-300 dark:border-slate-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-700 dark:text-slate-100 dark:placeholder-slate-400"
               placeholder="Ciudad o estado"
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">
+          <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">
             P&aacute;gina Web
           </label>
           <div className="relative">
@@ -193,20 +214,20 @@ export default function ClienteForm({
               name="pagina_web"
               type="url"
               defaultValue={initialData?.pagina_web ?? ""}
-              className="w-full pl-9 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full pl-9 pr-4 py-2.5 border border-gray-300 dark:border-slate-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-700 dark:text-slate-100 dark:placeholder-slate-400"
               placeholder="https://www.empresa.com"
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">
+          <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">
             Status
           </label>
           <select
             name="status"
             defaultValue={initialData?.status ?? ""}
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+            className="w-full px-4 py-2.5 border border-gray-300 dark:border-slate-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 dark:text-slate-100"
           >
             <option value="">Sin clasificar</option>
             <option value="Venta">Venta</option>
@@ -216,33 +237,33 @@ export default function ClienteForm({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">
+          <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">
             Comentarios
           </label>
           <textarea
             name="comentarios"
             rows={3}
             defaultValue={initialData?.comentarios ?? ""}
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+            className="w-full px-4 py-2.5 border border-gray-300 dark:border-slate-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-700 dark:text-slate-100 dark:placeholder-slate-400 resize-none"
             placeholder="Notas, fechas de cierre, motivos, seguimiento…"
           />
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-5">
-        <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-          <h3 className="font-semibold text-gray-800 text-base">Contactos</h3>
+      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 p-6 space-y-5">
+        <div className="flex items-center justify-between border-b border-gray-100 dark:border-slate-700 pb-3">
+          <h3 className="font-semibold text-gray-800 dark:text-slate-100 text-base">Contactos</h3>
           <button
             type="button"
             onClick={addContacto}
-            className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+            className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 font-medium"
           >
             + Agregar contacto
           </button>
         </div>
 
         {contactos.length === 0 && (
-          <p className="text-sm text-gray-400 text-center py-3">
+          <p className="text-sm text-gray-400 dark:text-slate-500 text-center py-3">
             Sin contactos. Haz clic en &quot;Agregar contacto&quot;.
           </p>
         )}
@@ -250,17 +271,17 @@ export default function ClienteForm({
         {contactos.map((contacto, idx) => (
           <div
             key={idx}
-            className="p-4 bg-gray-50 rounded-xl border border-gray-200 space-y-3"
+            className="p-4 bg-gray-50 dark:bg-slate-700/50 rounded-xl border border-gray-200 dark:border-slate-600 space-y-3"
           >
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-600">
+              <span className="text-sm font-medium text-gray-600 dark:text-slate-300">
                 Contacto {idx + 1}
               </span>
               {contactos.length > 1 && (
                 <button
                   type="button"
                   onClick={() => removeContacto(idx)}
-                  className="text-xs text-red-500 hover:text-red-700 font-medium"
+                  className="text-xs text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 font-medium"
                 >
                   Eliminar
                 </button>
@@ -272,11 +293,11 @@ export default function ClienteForm({
               placeholder="Nombre completo"
               value={contacto.nombre}
               onChange={(e) => updateContacto(idx, "nombre", e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-700 dark:text-slate-100 dark:placeholder-slate-400"
             />
 
             <div>
-              <label className="block text-xs text-gray-500 mb-1.5">Tel&eacute;fonos</label>
+              <label className="block text-xs text-gray-500 dark:text-slate-400 mb-1.5">Tel&eacute;fonos</label>
               <div className="space-y-1.5">
                 {contacto.telefonos.map((tel, telIdx) => (
                   <div key={telIdx} className="flex gap-2">
@@ -285,13 +306,13 @@ export default function ClienteForm({
                       placeholder="(55) 1234-5678"
                       value={tel}
                       onChange={(e) => updateTelefono(idx, telIdx, e.target.value)}
-                      className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="flex-1 px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-700 dark:text-slate-100 dark:placeholder-slate-400"
                     />
                     {contacto.telefonos.length > 1 && (
                       <button
                         type="button"
                         onClick={() => removeTelefono(idx, telIdx)}
-                        className="text-gray-400 hover:text-red-500 text-sm px-2"
+                        className="text-gray-400 hover:text-red-500 dark:text-slate-500 dark:hover:text-red-400 text-sm px-2"
                       >
                         ✕
                       </button>
@@ -302,7 +323,7 @@ export default function ClienteForm({
               <button
                 type="button"
                 onClick={() => addTelefono(idx)}
-                className="mt-1.5 text-xs text-blue-600 hover:text-blue-700"
+                className="mt-1.5 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700"
               >
                 + Agregar tel&eacute;fono
               </button>
@@ -313,34 +334,33 @@ export default function ClienteForm({
               placeholder="Correo electr&oacute;nico"
               value={contacto.correo ?? ""}
               onChange={(e) => updateContacto(idx, "correo", e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-700 dark:text-slate-100 dark:placeholder-slate-400"
             />
           </div>
         ))}
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-4">
-        <h3 className="font-semibold text-gray-800 text-base border-b border-gray-100 pb-3">
+      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 p-6 space-y-4">
+        <h3 className="font-semibold text-gray-800 dark:text-slate-100 text-base border-b border-gray-100 dark:border-slate-700 pb-3">
           Materiales que consume
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-          {MATERIALES.map((m) => (
+          {materialOptions.map((mat) => (
             <label
-              key={m}
+              key={mat.id}
               className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg border cursor-pointer transition-colors text-sm ${
-                selectedMaterials.has(m)
-                  ? "bg-blue-50 border-blue-300 text-blue-700"
-                  : "bg-gray-50 border-gray-200 text-gray-600 hover:border-gray-300"
+                selectedMaterials.has(mat.id)
+                  ? "bg-blue-50 border-blue-300 text-blue-700 dark:bg-blue-900/30 dark:border-blue-700 dark:text-blue-300"
+                  : "bg-gray-50 border-gray-200 text-gray-600 hover:border-gray-300 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-300 dark:hover:border-slate-500"
               }`}
             >
               <input
                 type="checkbox"
-                checked={selectedMaterials.has(m)}
-                onChange={() => toggleMaterial(m)}
+                checked={selectedMaterials.has(mat.id)}
+                onChange={() => toggleMaterial(mat.id)}
                 className="w-4 h-4 rounded accent-blue-600"
               />
-              <span className="font-medium">{m.split(". ")[0]}.</span>
-              <span className="text-xs">{m.split(". ")[1]}</span>
+              <span className="text-xs font-medium">{mat.nombre}</span>
             </label>
           ))}
         </div>

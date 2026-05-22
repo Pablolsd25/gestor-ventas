@@ -66,22 +66,22 @@ export default function CalendarioRecordatorios({ recordatorios }: Props) {
   return (
     <div className="flex flex-col lg:flex-row gap-4">
       {/* ── Calendar ── */}
-      <div className="flex-1 bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+      <div className="flex-1 bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 shadow-sm p-4">
         {/* Month nav */}
         <div className="flex items-center justify-between mb-4">
           <button
             onClick={prevMonth}
-            className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-600 transition-colors"
+            className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-600 dark:text-slate-400 transition-colors"
             aria-label="Mes anterior"
           >
             ‹
           </button>
-          <h3 className="font-semibold text-gray-800">
+          <h3 className="font-semibold text-gray-800 dark:text-slate-100">
             {MESES[month]} {year}
           </h3>
           <button
             onClick={nextMonth}
-            className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-600 transition-colors"
+            className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-600 dark:text-slate-400 transition-colors"
             aria-label="Mes siguiente"
           >
             ›
@@ -91,7 +91,7 @@ export default function CalendarioRecordatorios({ recordatorios }: Props) {
         {/* Day-of-week headers */}
         <div className="grid grid-cols-7 mb-1">
           {DIAS_CORTOS.map((d) => (
-            <div key={d} className="text-center text-xs font-medium text-gray-400 py-1">
+            <div key={d} className="text-center text-xs font-medium text-gray-400 dark:text-slate-500 py-1">
               {d}
             </div>
           ))}
@@ -123,8 +123,8 @@ export default function CalendarioRecordatorios({ recordatorios }: Props) {
                   isSelected
                     ? "bg-blue-600 text-white"
                     : isToday
-                    ? "bg-blue-50 text-blue-700 font-semibold"
-                    : "hover:bg-gray-50 text-gray-700",
+                    ? "bg-blue-50 text-blue-700 font-semibold dark:bg-blue-900/40 dark:text-blue-300"
+                    : "hover:bg-gray-50 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-300",
                 ].join(" ")}
               >
                 <span>{day}</span>
@@ -141,10 +141,10 @@ export default function CalendarioRecordatorios({ recordatorios }: Props) {
         </div>
 
         {/* Legend */}
-        <div className="flex gap-4 mt-3 pt-3 border-t border-gray-100">
+        <div className="flex gap-4 mt-3 pt-3 border-t border-gray-100 dark:border-slate-700">
           {([ ["bg-red-500", "Alta"], ["bg-amber-400", "Media"], ["bg-green-500", "Baja"] ] as const).map(
             ([color, label]) => (
-              <div key={label} className="flex items-center gap-1 text-xs text-gray-500">
+              <div key={label} className="flex items-center gap-1 text-xs text-gray-500 dark:text-slate-400">
                 <span className={`w-2 h-2 rounded-full ${color}`} />
                 {label}
               </div>
@@ -155,9 +155,9 @@ export default function CalendarioRecordatorios({ recordatorios }: Props) {
 
       {/* ── Day panel ── */}
       {selectedDay ? (
-        <div className="lg:w-72 bg-white rounded-xl border border-gray-100 shadow-sm p-4 space-y-3">
+        <div className="lg:w-72 bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 shadow-sm p-4 space-y-3">
           <div className="flex items-center justify-between">
-            <h4 className="font-semibold text-gray-800 text-sm capitalize">
+            <h4 className="font-semibold text-gray-800 dark:text-slate-100 text-sm capitalize">
               {new Date(selectedDay + "T12:00:00").toLocaleDateString("es-MX", {
                 weekday: "long",
                 day:     "numeric",
@@ -166,14 +166,14 @@ export default function CalendarioRecordatorios({ recordatorios }: Props) {
             </h4>
             <Link
               href={`/recordatorios/nuevo?fecha=${selectedDay}`}
-              className="text-xs text-blue-600 hover:underline whitespace-nowrap"
+              className="text-xs text-blue-600 dark:text-blue-400 hover:underline whitespace-nowrap"
             >
               + Agregar
             </Link>
           </div>
 
           {selectedRecs.length === 0 ? (
-            <p className="text-sm text-gray-400 text-center py-6">
+            <p className="text-sm text-gray-400 dark:text-slate-500 text-center py-6">
               Sin recordatorios este d&iacute;a
             </p>
           ) : (
@@ -185,8 +185,8 @@ export default function CalendarioRecordatorios({ recordatorios }: Props) {
           )}
         </div>
       ) : (
-        <div className="hidden lg:flex lg:w-72 bg-gray-50 rounded-xl border border-dashed border-gray-200 items-center justify-center">
-          <p className="text-sm text-gray-400 text-center px-4">
+        <div className="hidden lg:flex lg:w-72 bg-gray-50 dark:bg-slate-800/50 rounded-xl border border-dashed border-gray-200 dark:border-slate-600 items-center justify-center">
+          <p className="text-sm text-gray-400 dark:text-slate-500 text-center px-4">
             Selecciona un d&iacute;a para ver sus recordatorios
           </p>
         </div>
@@ -198,9 +198,9 @@ export default function CalendarioRecordatorios({ recordatorios }: Props) {
 // ── Individual recordatorio inside the day panel ──────────────────────────────
 
 const PRIORIDAD_CARD: Record<string, string> = {
-  alta:  "border-red-200 bg-red-50",
-  media: "border-amber-200 bg-amber-50",
-  baja:  "border-green-200 bg-green-50",
+  alta:  "border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/40",
+  media: "border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-900/40",
+  baja:  "border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/40",
 };
 
 function RecItem({ r }: { r: RecordatorioConUniones }) {
@@ -215,7 +215,7 @@ function RecItem({ r }: { r: RecordatorioConUniones }) {
   }
 
   const cardClass = done
-    ? "border-gray-100 bg-gray-50 opacity-50"
+    ? "border-gray-100 bg-gray-50 opacity-50 dark:border-slate-700 dark:bg-slate-800"
     : PRIORIDAD_CARD[r.prioridad];
 
   return (
@@ -225,10 +225,10 @@ function RecItem({ r }: { r: RecordatorioConUniones }) {
           {TIPO_ICONO[r.tipo]}
         </span>
         <div className="flex-1 min-w-0">
-          <p className={`text-sm font-medium truncate ${done ? "line-through text-gray-400" : "text-gray-800"}`}>
+          <p className={`text-sm font-medium truncate ${done ? "line-through text-gray-400 dark:text-slate-500" : "text-gray-800 dark:text-slate-100"}`}>
             {r.titulo}
           </p>
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-gray-500 dark:text-slate-400">
             {r.hora.slice(0, 5)}
             {r.clientes?.razon_social ? ` · ${r.clientes.razon_social}` : ""}
           </p>

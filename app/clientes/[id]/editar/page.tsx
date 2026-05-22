@@ -56,17 +56,16 @@ export default async function EditarClientePage({ params }: Props) {
     correo: c.correo ?? "",
   }));
 
-  const { data: materialesRows } = await supabase
+  const { data: allMateriales } = await supabase
     .from("materiales")
-    .select("nombre")
-    .in(
-      "id",
-      ((materialesResult.data ?? []) as Array<{ material_id: number }>).map(
-        (m) => m.material_id
-      )
-    );
+    .select("id, nombre")
+    .order("id");
 
-  const materiales: string[] = ((materialesRows ?? []) as Array<{ nombre: string }>).map((m) => m.nombre);
+  const materialOptions = (allMateriales ?? []) as Array<{ id: number; nombre: string }>;
+
+  const materiales: number[] = ((materialesResult.data ?? []) as Array<{ material_id: number }>).map(
+    (m) => m.material_id
+  );
 
   const boundAction = updateClienteAction.bind(null, id);
 
@@ -104,6 +103,7 @@ export default async function EditarClientePage({ params }: Props) {
         }}
         submitLabel="Guardar Cambios"
         isEdit
+        materiales={materialOptions}
       />
     </div>
   );

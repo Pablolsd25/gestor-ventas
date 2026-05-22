@@ -51,7 +51,7 @@ export async function createVentaAction(
   }
 
   revalidatePath("/ventas");
-  redirect(`/ventas`);
+  redirect(`/ventas?toast=Venta+creada+exitosamente`);
 }
 
 export async function updateVentaAction(
@@ -96,7 +96,7 @@ export async function updateVentaAction(
   }
 
   revalidatePath("/ventas");
-  redirect(`/ventas`);
+  redirect(`/ventas?toast=Venta+actualizada+exitosamente`);
 }
 
 export async function deleteVentaAction(
@@ -114,5 +114,5 @@ export async function deleteVentaAction(
   }
 
   revalidatePath("/ventas");
-  redirect("/ventas");
+  redirect("/ventas?toast=Venta+eliminada+correctamente");
 }

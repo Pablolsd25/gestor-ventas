@@ -5,15 +5,15 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 
 const statusBadge: Record<string, string> = {
-  Venta:     "bg-green-100 text-green-800",
-  Credito:   "bg-blue-100 text-blue-800",
-  Prospecto: "bg-amber-100 text-amber-800",
+  Venta:     "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300",
+  Credito:   "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300",
+  Prospecto: "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300",
 };
 const ventaEstadoColor: Record<string, string> = {
-  ganada:     "bg-green-100 text-green-800",
-  perdida:    "bg-red-100 text-red-800",
-  en_proceso: "bg-amber-100 text-amber-800",
-  propuesta:  "bg-blue-100 text-blue-800",
+  ganada:     "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300",
+  perdida:    "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300",
+  en_proceso: "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300",
+  propuesta:  "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300",
 };
 const ventaEstadoLabel: Record<string, string> = {
   ganada:     "Ganada",
@@ -75,23 +75,23 @@ export default async function ClienteDetallePage({ params }: Props) {
   return (
     <div className="space-y-6">
       {/* Volver */}
-      <Link href="/clientes" className="text-sm text-blue-600 hover:underline">
+      <Link href="/clientes" className="text-sm text-blue-600 dark:text-blue-400 hover:underline">
         ← Volver a Clientes
       </Link>
 
       {/* Cabecera */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 p-6">
         <div className="flex items-start justify-between flex-wrap gap-3">
           <div>
             <div className="flex items-center gap-3 flex-wrap">
-              <h2 className="text-2xl font-bold text-gray-900">{cliente.razon_social}</h2>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-slate-100">{cliente.razon_social}</h2>
               {cliente.sae && (
-                <span className="text-xs font-mono bg-gray-100 text-gray-500 px-2 py-0.5 rounded">
+                <span className="text-xs font-mono bg-gray-100 text-gray-500 dark:bg-slate-700 dark:text-slate-400 px-2 py-0.5 rounded">
                   SAE {cliente.sae}
                 </span>
               )}
             </div>
-            <p className="text-gray-500 mt-1">{cliente.ciudad}</p>
+            <p className="text-gray-500 dark:text-slate-400 mt-1">{cliente.ciudad}</p>
           </div>
           {cliente.status && (
             <span className={`px-3 py-1 rounded-full text-sm font-medium ${statusBadge[cliente.status]}`}>
@@ -100,7 +100,7 @@ export default async function ClienteDetallePage({ params }: Props) {
           )}
           <Link
             href={`/clientes/${id}/editar`}
-            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-lg transition-colors border border-gray-200"
+            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-slate-200 dark:border-slate-600 text-sm font-medium rounded-lg transition-colors border border-gray-200"
           >
             Editar
           </Link>
@@ -113,7 +113,7 @@ export default async function ClienteDetallePage({ params }: Props) {
               href={cliente.pagina_web}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 hover:underline"
+              className="inline-flex items-center gap-1.5 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:underline"
             >
               <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -127,12 +127,12 @@ export default async function ClienteDetallePage({ params }: Props) {
         {/* Materiales */}
         {(cliente.materiales as string[])?.length > 0 && (
           <div className="mt-4">
-            <p className="text-xs text-gray-400 mb-1">Materiales que consume</p>
+            <p className="text-xs text-gray-400 dark:text-slate-500 mb-1">Materiales que consume</p>
             <div className="flex flex-wrap gap-2">
               {(cliente.materiales as string[]).map((m) => (
                 <span
                   key={m}
-                  className="text-sm bg-blue-50 text-blue-700 border border-blue-100 px-3 py-1 rounded-lg font-medium"
+                  className="text-sm bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800 border border-blue-100 px-3 py-1 rounded-lg font-medium"
                 >
                   {m}
                 </span>
@@ -143,51 +143,51 @@ export default async function ClienteDetallePage({ params }: Props) {
 
         {/* Comentarios */}
         {cliente.comentarios && (
-          <div className="mt-4 p-3 bg-amber-50 rounded-lg border border-amber-100 text-sm text-amber-800">
+          <div className="mt-4 p-3 bg-amber-50 rounded-lg border border-amber-100 text-sm text-amber-800 dark:bg-amber-900/30 dark:border-amber-800 dark:text-amber-200">
             <span className="font-semibold">Comentarios:</span> {cliente.comentarios}
           </div>
         )}
 
         {/* KPIs */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 pt-4 border-t border-gray-100">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 pt-4 border-t border-gray-100 dark:border-slate-700">
           <div>
-            <p className="text-xs text-gray-400">Ventas registradas</p>
-            <p className="text-xl font-bold text-gray-800">{ventas.length}</p>
+            <p className="text-xs text-gray-400 dark:text-slate-500">Ventas registradas</p>
+            <p className="text-xl font-bold text-gray-800 dark:text-slate-100">{ventas.length}</p>
           </div>
           <div>
-            <p className="text-xs text-gray-400">Total facturado</p>
-            <p className="text-xl font-bold text-emerald-600">{formatMonto(totalFacturado)}</p>
+            <p className="text-xs text-gray-400 dark:text-slate-500">Total facturado</p>
+            <p className="text-xl font-bold text-emerald-600 dark:text-emerald-400">{formatMonto(totalFacturado)}</p>
           </div>
           <div>
-            <p className="text-xs text-gray-400">Ton. entregadas</p>
-            <p className="text-xl font-bold text-gray-800">
+            <p className="text-xs text-gray-400 dark:text-slate-500">Ton. entregadas</p>
+            <p className="text-xl font-bold text-gray-800 dark:text-slate-100">
               {totalToneladas > 0 ? `${totalToneladas} ton` : "—"}
             </p>
           </div>
           <div>
-            <p className="text-xs text-gray-400">Recordatorios</p>
-            <p className="text-xl font-bold text-gray-800">{recordatorios.length}</p>
+            <p className="text-xs text-gray-400 dark:text-slate-500">Recordatorios</p>
+            <p className="text-xl font-bold text-gray-800 dark:text-slate-100">{recordatorios.length}</p>
           </div>
         </div>
       </div>
 
       {/* Contactos */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-        <h3 className="font-semibold text-gray-800 mb-4">
+      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 p-5">
+        <h3 className="font-semibold text-gray-800 dark:text-slate-100 mb-4">
           Contactos ({contactos.length})
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {contactos.map((c) => (
-            <div key={c.id} className="p-4 bg-gray-50 rounded-xl border border-gray-100">
-              <p className="font-medium text-gray-800">
-                {c.nombre || <span className="italic text-gray-400">Sin nombre</span>}
+            <div key={c.id} className="p-4 bg-gray-50 dark:bg-slate-800/50 rounded-xl border border-gray-100 dark:border-slate-700">
+              <p className="font-medium text-gray-800 dark:text-slate-100">
+                {c.nombre || <span className="italic text-gray-400 dark:text-slate-500">Sin nombre</span>}
               </p>
               <div className="mt-2 space-y-1">
                 {c.telefonos.map((t, j) => (
-                  <p key={j} className="text-sm text-gray-600">📞 {t}</p>
+                  <p key={j} className="text-sm text-gray-600 dark:text-slate-400">📞 {t}</p>
                 ))}
                 {c.correo && (
-                  <p className="text-sm text-gray-600">✉️ {c.correo}</p>
+                  <p className="text-sm text-gray-600 dark:text-slate-400">✉️ {c.correo}</p>
                 )}
               </div>
             </div>
@@ -196,22 +196,22 @@ export default async function ClienteDetallePage({ params }: Props) {
       </div>
 
       {/* Ventas */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-        <h3 className="font-semibold text-gray-800 mb-4">
+      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 p-5">
+        <h3 className="font-semibold text-gray-800 dark:text-slate-100 mb-4">
           Ventas / Pedidos ({ventas.length})
         </h3>
         {ventas.length === 0 ? (
-          <p className="text-sm text-gray-400 text-center py-4">Sin ventas registradas</p>
+          <p className="text-sm text-gray-400 dark:text-slate-500 text-center py-4">Sin ventas registradas</p>
         ) : (
           <div className="space-y-2">
             {ventas.map((v) => (
               <div
                 key={v.id}
-                className="flex items-center justify-between p-3 bg-gray-50 rounded-lg flex-wrap gap-2"
+                className="flex items-center justify-between p-3 bg-gray-50 dark:bg-slate-700/50 rounded-lg flex-wrap gap-2"
               >
                 <div>
-                  <p className="text-sm font-medium text-gray-800">{v.descripcion}</p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-sm font-medium text-gray-800 dark:text-slate-100">{v.descripcion}</p>
+                  <p className="text-xs text-gray-500 dark:text-slate-400">
                     {v.materiales?.nombre && `${v.materiales.nombre}`}
                     {v.cantidad ? ` · ${v.cantidad} ton` : ""}
                     {v.fecha_creacion ? ` · ${v.fecha_creacion}` : ""}
@@ -221,7 +221,7 @@ export default async function ClienteDetallePage({ params }: Props) {
                   <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${ventaEstadoColor[v.estado]}`}>
                     {ventaEstadoLabel[v.estado]}
                   </span>
-                  <span className="text-sm font-semibold text-gray-700">
+                  <span className="text-sm font-semibold text-gray-700 dark:text-slate-300">
                     {formatMonto(Number(v.monto))}
                   </span>
                 </div>
@@ -233,22 +233,22 @@ export default async function ClienteDetallePage({ params }: Props) {
 
       {/* Recordatorios */}
       {recordatorios.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-          <h3 className="font-semibold text-gray-800 mb-4">
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 p-5">
+          <h3 className="font-semibold text-gray-800 dark:text-slate-100 mb-4">
             Recordatorios ({recordatorios.length})
           </h3>
           <div className="space-y-2">
             {recordatorios.map((r) => (
               <div
                 key={r.id}
-                className={`flex items-center gap-3 p-3 rounded-lg ${r.completado ? "opacity-50" : "bg-gray-50"}`}
+                className={`flex items-center gap-3 p-3 rounded-lg ${r.completado ? "opacity-50" : "bg-gray-50 dark:bg-slate-700/50"}`}
               >
                 <span className="text-lg">{tipoIcono[r.tipo]}</span>
                 <div className="flex-1">
-                  <p className={`text-sm font-medium ${r.completado ? "line-through text-gray-400" : "text-gray-800"}`}>
+                  <p className={`text-sm font-medium ${r.completado ? "line-through text-gray-400" : "text-gray-800 dark:text-slate-100"}`}>
                     {r.titulo}
                   </p>
-                  <p className="text-xs text-gray-400">
+                  <p className="text-xs text-gray-400 dark:text-slate-500">
                     {r.fecha} · {r.hora.slice(0, 5)}
                   </p>
                 </div>

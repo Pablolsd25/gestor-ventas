@@ -176,6 +176,6 @@ CREATE POLICY "ventas_auth_all" ON ventas
 CREATE POLICY "recordatorios_auth_all" ON recordatorios
   FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
--- Materiales: solo lectura para autenticados (catálogo)
-CREATE POLICY "materiales_auth_read" ON materiales
-  FOR SELECT TO authenticated USING (true);
+-- Materiales: lectura/escritura para autenticados (catálogo)
+CREATE POLICY "materiales_auth_all" ON materiales
+  FOR ALL TO authenticated USING (true) WITH CHECK (true);

@@ -18,7 +18,7 @@ export default function DeleteVentaButton({ id }: { id: string }) {
       onClick={handleDelete}
       disabled={isPending}
       title="Eliminar venta"
-      className="text-red-400 hover:text-red-600 disabled:opacity-40 transition-colors p-1 rounded hover:bg-red-50"
+      className="text-red-400 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 disabled:opacity-40 transition-colors p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/30"
     >
       {isPending ? (
         <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">

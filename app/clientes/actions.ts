@@ -24,13 +24,7 @@ interface ClienteFormData {
   status: "Venta" | "Credito" | "Prospecto" | "";
   comentarios: string;
   contactos: ContactoData[];
-  materiales: string[];
-}
-
-function materialNameToId(nombre: string): number | null {
-  const match = nombre.match(/^(\d+)\./);
-  if (match) return parseInt(match[1], 10);
-  return null;
+  materiales: number[];
 }
 
 function parseContactos(raw: FormDataEntryValue | null): ContactoData[] {
@@ -42,10 +36,10 @@ function parseContactos(raw: FormDataEntryValue | null): ContactoData[] {
   }
 }
 
-function parseMateriales(raw: FormDataEntryValue | null): string[] {
+function parseMateriales(raw: FormDataEntryValue | null): number[] {
   if (!raw || typeof raw !== "string") return [];
   try {
-    return JSON.parse(raw) as string[];
+    return JSON.parse(raw) as number[];
   } catch {
     return [];
   }
@@ -108,11 +102,9 @@ export async function createClienteAction(
     }
   }
 
-  const materialIds = data.materiales.map((m) => materialNameToId(m)).filter((id): id is number => id !== null);
-
-  if (materialIds.length > 0) {
+  if (data.materiales.length > 0) {
     const { error: materialesError } = await supabase.from("cliente_materiales").insert(
-      materialIds.map((material_id) => ({ cliente_id: cliente.id, material_id }))
+      data.materiales.map((material_id) => ({ cliente_id: cliente.id, material_id }))
     );
     if (materialesError) {
       return { error: `Error al guardar materiales: ${materialesError.message}` };
@@ -120,7 +112,7 @@ export async function createClienteAction(
   }
 
   revalidatePath("/clientes");
-  redirect(`/clientes/${cliente.id}`);
+  redirect(`/clientes/${cliente.id}?toast=Cliente+creado+exitosamente`);
 }
 
 export async function updateClienteAction(
@@ -186,17 +178,15 @@ export async function updateClienteAction(
 
   await supabase.from("cliente_materiales").delete().eq("cliente_id", id);
 
-  const materialIds = data.materiales.map((m) => materialNameToId(m)).filter((mid): mid is number => mid !== null);
-
-  if (materialIds.length > 0) {
+  if (data.materiales.length > 0) {
     await supabase.from("cliente_materiales").insert(
-      materialIds.map((material_id) => ({ cliente_id: id, material_id }))
+      data.materiales.map((material_id) => ({ cliente_id: id, material_id }))
     );
   }
 
   revalidatePath("/clientes");
   revalidatePath(`/clientes/${id}`);
-  redirect(`/clientes/${id}`);
+  redirect(`/clientes/${id}?toast=Cliente+actualizado+exitosamente`);
 }
 
 export async function deleteClienteAction(
@@ -216,5 +206,5 @@ export async function deleteClienteAction(
   }
 
   revalidatePath("/clientes");
-  redirect("/clientes");
+  redirect("/clientes?toast=Cliente+eliminado+correctamente");
 }

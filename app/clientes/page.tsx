@@ -6,9 +6,9 @@ import DeleteClienteButton from "@/components/clientes/DeleteClienteButton";
 // ── Status helpers ────────────────────────────────────────────────────────────
 
 const STATUS_BADGE: Record<string, string> = {
-  Venta:     "bg-green-100 text-green-800",
-  Credito:   "bg-blue-100 text-blue-800",
-  Prospecto: "bg-amber-100 text-amber-800",
+  Venta:     "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300",
+  Credito:   "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300",
+  Prospecto: "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300",
 };
 
 type TabKey = "venta" | "credito" | "prospecto" | "sin" | "todos";
@@ -18,35 +18,35 @@ const TABS: { key: TabKey; label: string; color: string; activeClass: string; do
     key:         "venta",
     label:       "En Venta",
     color:       "text-green-700",
-    activeClass: "border-green-500 text-green-700 bg-green-50",
+    activeClass: "border-green-500 text-green-700 bg-green-50 dark:border-green-600 dark:text-green-300 dark:bg-green-900/30",
     dotClass:    "bg-green-500",
   },
   {
     key:         "credito",
     label:       "Crédito",
     color:       "text-blue-700",
-    activeClass: "border-blue-500 text-blue-700 bg-blue-50",
+    activeClass: "border-blue-500 text-blue-700 bg-blue-50 dark:border-blue-600 dark:text-blue-300 dark:bg-blue-900/30",
     dotClass:    "bg-blue-500",
   },
   {
     key:         "prospecto",
     label:       "Prospectos",
     color:       "text-amber-700",
-    activeClass: "border-amber-500 text-amber-700 bg-amber-50",
+    activeClass: "border-amber-500 text-amber-700 bg-amber-50 dark:border-amber-600 dark:text-amber-300 dark:bg-amber-900/30",
     dotClass:    "bg-amber-500",
   },
   {
     key:         "sin",
     label:       "Sin clasificar",
     color:       "text-gray-500",
-    activeClass: "border-gray-400 text-gray-700 bg-gray-50",
+    activeClass: "border-gray-400 text-gray-700 bg-gray-50 dark:border-slate-500 dark:text-slate-300 dark:bg-slate-700",
     dotClass:    "bg-gray-400",
   },
   {
     key:         "todos",
     label:       "Todos",
     color:       "text-gray-600",
-    activeClass: "border-gray-500 text-gray-800 bg-white",
+    activeClass: "border-gray-500 text-gray-800 bg-white dark:border-slate-400 dark:text-slate-100 dark:bg-slate-800",
     dotClass:    "bg-gray-500",
   },
 ];
@@ -97,7 +97,7 @@ export default async function ClientesPage({
     <div className="space-y-5">
 
       {/* ── Tab bar ─────────────────────────────────────────────────────── */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm px-2 py-2">
+      <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm px-2 py-2">
         <div className="flex items-center gap-1 overflow-x-auto">
           {TABS.map((t) => {
             const isActive = t.key === activeTab;
@@ -109,14 +109,14 @@ export default async function ClientesPage({
                   "flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium whitespace-nowrap transition-all border",
                   isActive
                     ? `${t.activeClass} border-opacity-60 shadow-sm`
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50",
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-700",
                 ].join(" ")}
               >
                 <span className={`w-2 h-2 rounded-full shrink-0 ${isActive ? t.dotClass : "bg-gray-300"}`} />
                 {t.label}
                 <span className={[
                   "text-xs px-1.5 py-0.5 rounded-full font-semibold",
-                  isActive ? "bg-white/70 text-current" : "bg-gray-100 text-gray-500",
+                  isActive ? "bg-white/70 text-current" : "bg-gray-100 text-gray-500 dark:bg-slate-700 dark:text-slate-400",
                 ].join(" ")}>
                   {counts[t.key]}
                 </span>
@@ -128,7 +128,7 @@ export default async function ClientesPage({
 
       {/* ── Cabecera ────────────────────────────────────────────────────── */}
       <div className="flex items-center justify-between">
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-gray-500 dark:text-slate-400">
           {filtered.length === clientes.length
             ? `${clientes.length} clientes en total`
             : `${filtered.length} de ${clientes.length} clientes`}
@@ -144,7 +144,7 @@ export default async function ClientesPage({
       {/* ── Vista mobile: tarjetas ─────────────────────────────────────── */}
       <div className="md:hidden space-y-3">
         {filtered.length === 0 && (
-          <div className="text-center py-12 text-gray-400 text-sm">
+          <div className="text-center py-12 text-gray-400 dark:text-slate-500 text-sm">
             No hay clientes en esta categoría
           </div>
         )}
@@ -153,12 +153,12 @@ export default async function ClientesPage({
           const cp = contactos.find((ct) => ct.nombre) ?? contactos[0];
           const otrosContactos = contactos.length - 1;
           return (
-            <div key={c.id} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 space-y-3">
+            <div key={c.id} className="bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 shadow-sm p-4 space-y-3">
               <div className="flex items-start justify-between gap-2">
                 <div>
-                  <p className="font-semibold text-gray-900 leading-tight">{c.razon_social}</p>
+                  <p className="font-semibold text-gray-900 dark:text-slate-100 leading-tight">{c.razon_social}</p>
                   {c.sae && (
-                    <p className="text-xs text-gray-400 font-mono mt-0.5">SAE {c.sae}</p>
+                    <p className="text-xs text-gray-400 dark:text-slate-500 font-mono mt-0.5">SAE {c.sae}</p>
                   )}
                 </div>
                 {c.status ? (
@@ -171,8 +171,8 @@ export default async function ClientesPage({
               <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
                 {cp?.nombre && (
                   <div>
-                    <p className="text-xs text-gray-400 uppercase tracking-wide">Contacto</p>
-                    <p className="text-gray-700">
+                    <p className="text-xs text-gray-400 dark:text-slate-500 uppercase tracking-wide">Contacto</p>
+                    <p className="text-gray-700 dark:text-slate-300">
                       {cp.nombre}
                       {otrosContactos > 0 && (
                         <span className="ml-1 text-xs text-blue-500">+{otrosContactos}</span>
@@ -182,40 +182,40 @@ export default async function ClientesPage({
                 )}
                 {cp?.telefonos?.[0] && (
                   <div>
-                    <p className="text-xs text-gray-400 uppercase tracking-wide">Teléfono</p>
-                    <p className="text-gray-700">{cp.telefonos[0]}</p>
+                    <p className="text-xs text-gray-400 dark:text-slate-500 uppercase tracking-wide">Teléfono</p>
+                    <p className="text-gray-700 dark:text-slate-300">{cp.telefonos[0]}</p>
                   </div>
                 )}
                 {c.ciudad && (
                   <div>
-                    <p className="text-xs text-gray-400 uppercase tracking-wide">Ciudad</p>
-                    <p className="text-gray-700">{c.ciudad}</p>
+                    <p className="text-xs text-gray-400 dark:text-slate-500 uppercase tracking-wide">Ciudad</p>
+                    <p className="text-gray-700 dark:text-slate-300">{c.ciudad}</p>
                   </div>
                 )}
                 {(c.materiales as string[] | null)?.length ? (
                   <div>
-                    <p className="text-xs text-gray-400 uppercase tracking-wide">Materiales</p>
+                    <p className="text-xs text-gray-400 dark:text-slate-500 uppercase tracking-wide">Materiales</p>
                     <div className="flex flex-wrap gap-1 mt-0.5">
                       {(c.materiales as string[]).map((m) => (
-                        <span key={m} className="text-xs bg-gray-100 text-gray-700 px-1.5 py-0.5 rounded">
-                          {m}
-                        </span>
+                          <span key={m} className="text-xs bg-gray-100 text-gray-700 dark:bg-slate-700 dark:text-slate-300 px-1.5 py-0.5 rounded">
+                            {m}
+                          </span>
                       ))}
                     </div>
                   </div>
                 ) : null}
               </div>
 
-              <div className="flex items-center gap-2 pt-1 border-t border-gray-50">
+              <div className="flex items-center gap-2 pt-1 border-t border-gray-50 dark:border-slate-700">
                 <Link
                   href={`/clientes/${c.id}`}
-                  className="flex-1 text-center text-xs text-blue-600 font-medium py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors"
+                  className="flex-1 text-center text-xs text-blue-600 dark:text-blue-400 font-medium py-1.5 rounded-lg bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
                 >
                   Ver detalle
                 </Link>
                 <Link
                   href={`/clientes/${c.id}/editar`}
-                  className="flex-1 text-center text-xs text-amber-600 font-medium py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 transition-colors"
+                  className="flex-1 text-center text-xs text-amber-600 dark:text-amber-400 font-medium py-1.5 rounded-lg bg-amber-50 dark:bg-amber-900/30 hover:bg-amber-100 dark:hover:bg-amber-900/50 transition-colors"
                 >
                   Editar
                 </Link>
@@ -227,59 +227,59 @@ export default async function ClientesPage({
       </div>
 
       {/* ── Vista desktop: tabla ──────────────────────────────────────── */}
-      <div className="hidden md:block bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="hidden md:block bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 overflow-hidden">
         {filtered.length === 0 ? (
-          <div className="text-center py-16 text-gray-400 text-sm">
+          <div className="text-center py-16 text-gray-400 dark:text-slate-500 text-sm">
             No hay clientes en esta categoría
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm min-w-[900px]">
-              <thead className="bg-gray-50 border-b border-gray-100">
+              <thead className="bg-gray-50 dark:bg-slate-800/80 border-b border-gray-100 dark:border-slate-700">
                 <tr>
-                  <th className="text-left px-4 py-3 text-gray-500 font-medium w-16">SAE</th>
-                  <th className="text-left px-4 py-3 text-gray-500 font-medium">Razón Social</th>
-                  <th className="text-left px-4 py-3 text-gray-500 font-medium">Contacto</th>
-                  <th className="text-left px-4 py-3 text-gray-500 font-medium">Teléfono(s)</th>
-                  <th className="text-left px-4 py-3 text-gray-500 font-medium">Correo</th>
-                  <th className="text-left px-4 py-3 text-gray-500 font-medium">Ciudad / Estado</th>
-                  <th className="text-left px-4 py-3 text-gray-500 font-medium">Materiales</th>
+                  <th className="text-left px-4 py-3 text-gray-500 dark:text-slate-400 font-medium w-16">SAE</th>
+                  <th className="text-left px-4 py-3 text-gray-500 dark:text-slate-400 font-medium">Razón Social</th>
+                  <th className="text-left px-4 py-3 text-gray-500 dark:text-slate-400 font-medium">Contacto</th>
+                  <th className="text-left px-4 py-3 text-gray-500 dark:text-slate-400 font-medium">Teléfono(s)</th>
+                  <th className="text-left px-4 py-3 text-gray-500 dark:text-slate-400 font-medium">Correo</th>
+                  <th className="text-left px-4 py-3 text-gray-500 dark:text-slate-400 font-medium">Ciudad / Estado</th>
+                  <th className="text-left px-4 py-3 text-gray-500 dark:text-slate-400 font-medium">Materiales</th>
                   {activeTab === "todos" && (
-                    <th className="text-left px-4 py-3 text-gray-500 font-medium">Status</th>
+                    <th className="text-left px-4 py-3 text-gray-500 dark:text-slate-400 font-medium">Status</th>
                   )}
-                  <th className="text-left px-4 py-3 text-gray-500 font-medium">Comentarios</th>
+                  <th className="text-left px-4 py-3 text-gray-500 dark:text-slate-400 font-medium">Comentarios</th>
                   <th className="px-4 py-3 w-20" />
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody className="divide-y divide-gray-50 dark:divide-slate-700/50">
                 {filtered.map((c) => {
                   const contactos = (c.contactos ?? []) as Contacto[];
                   const cp = contactos.find((ct) => ct.nombre) ?? contactos[0];
                   const otrosContactos = contactos.length - 1;
                   return (
-                    <tr key={c.id} className="hover:bg-gray-50 transition-colors align-top">
-                      <td className="px-4 py-3 text-gray-400 font-mono text-xs">{c.sae ?? "—"}</td>
+                    <tr key={c.id} className="hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors align-top">
+                      <td className="px-4 py-3 text-gray-400 dark:text-slate-500 font-mono text-xs">{c.sae ?? "—"}</td>
 
-                      <td className="px-4 py-3 font-medium text-gray-900">{c.razon_social}</td>
+                      <td className="px-4 py-3 font-medium text-gray-900 dark:text-slate-100">{c.razon_social}</td>
 
-                      <td className="px-4 py-3 text-gray-700">
-                        {cp?.nombre || <span className="text-gray-400 italic">Sin nombre</span>}
+                      <td className="px-4 py-3 text-gray-700 dark:text-slate-300">
+                        {cp?.nombre || <span className="text-gray-400 dark:text-slate-500 italic">Sin nombre</span>}
                         {otrosContactos > 0 && (
                           <span className="ml-1 text-xs text-blue-500">+{otrosContactos}</span>
                         )}
                       </td>
 
-                      <td className="px-4 py-3 text-gray-600">
+                      <td className="px-4 py-3 text-gray-600 dark:text-slate-300">
                         {cp?.telefonos?.map((t, i) => <div key={i}>{t}</div>)}
                       </td>
 
-                      <td className="px-4 py-3 text-gray-600 max-w-[180px]">
+                      <td className="px-4 py-3 text-gray-600 dark:text-slate-300 max-w-[180px]">
                         <span className="break-all text-xs">
-                          {cp?.correo ?? <span className="text-gray-400">—</span>}
+                          {cp?.correo ?? <span className="text-gray-400 dark:text-slate-500">—</span>}
                         </span>
                       </td>
 
-                      <td className="px-4 py-3 text-gray-600">{c.ciudad}</td>
+                      <td className="px-4 py-3 text-gray-600 dark:text-slate-300">{c.ciudad}</td>
 
                       <td className="px-4 py-3">
                         <div className="flex flex-wrap gap-1">
@@ -287,7 +287,7 @@ export default async function ClientesPage({
                             <span className="text-gray-400 text-xs">—</span>
                           ) : (
                             (c.materiales as string[]).map((m) => (
-                              <span key={m} className="text-xs bg-gray-100 text-gray-700 px-1.5 py-0.5 rounded">
+                              <span key={m} className="text-xs bg-gray-100 text-gray-700 dark:bg-slate-700 dark:text-slate-300 px-1.5 py-0.5 rounded">
                                 {m}
                               </span>
                             ))
@@ -307,11 +307,11 @@ export default async function ClientesPage({
                         </td>
                       )}
 
-                      <td className="px-4 py-3 text-xs text-gray-500 max-w-[200px]">
+                      <td className="px-4 py-3 text-xs text-gray-500 dark:text-slate-400 max-w-[200px]">
                         {c.comentarios ? (
                           <span className="line-clamp-2" title={c.comentarios}>{c.comentarios}</span>
                         ) : (
-                          <span className="text-gray-300">—</span>
+                          <span className="text-gray-300 dark:text-slate-600">—</span>
                         )}
                       </td>
 
@@ -320,7 +320,7 @@ export default async function ClientesPage({
                           <Link
                             href={`/clientes/${c.id}`}
                             title="Ver cliente"
-                            className="text-gray-400 hover:text-blue-600 transition-colors p-1 rounded hover:bg-blue-50"
+                            className="text-gray-400 hover:text-blue-600 dark:text-slate-500 dark:hover:text-blue-400 transition-colors p-1 rounded hover:bg-blue-50 dark:hover:bg-blue-900/30"
                           >
                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -332,7 +332,7 @@ export default async function ClientesPage({
                           <Link
                             href={`/clientes/${c.id}/editar`}
                             title="Editar cliente"
-                            className="text-gray-400 hover:text-amber-600 transition-colors p-1 rounded hover:bg-amber-50"
+                            className="text-gray-400 hover:text-amber-600 dark:text-slate-500 dark:hover:text-amber-400 transition-colors p-1 rounded hover:bg-amber-50 dark:hover:bg-amber-900/30"
                           >
                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
