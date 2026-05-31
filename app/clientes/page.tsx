@@ -1,7 +1,9 @@
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import type { ClienteCompletoRow } from "@/types/database";
 import Link from "next/link";
+import { Suspense } from "react";
 import DeleteClienteButton from "@/components/clientes/DeleteClienteButton";
+import ClientesFilters from "@/components/clientes/ClientesFilters";
 
 // ── Status helpers ────────────────────────────────────────────────────────────
 
@@ -66,11 +68,13 @@ function tabFilter(c: ClienteCompletoRow, tab: TabKey): boolean {
 export default async function ClientesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ tab?: string }>;
+  searchParams: Promise<{ tab?: string; material?: string; ciudad?: string }>;
 }) {
-  const { tab: rawTab } = await searchParams;
+  const { tab: rawTab, material: rawMaterial, ciudad: rawCiudad } = await searchParams;
   const validTabs = new Set<string>(["venta", "credito", "prospecto", "sin", "todos"]);
   const activeTab: TabKey = (rawTab && validTabs.has(rawTab) ? rawTab : "venta") as TabKey;
+  const fMaterial = rawMaterial?.trim() || "";
+  const fCiudad = rawCiudad?.trim() || "";
 
   const supabase = await createSupabaseServerClient();
 
@@ -81,6 +85,14 @@ export default async function ClientesPage({
 
   const clientes = (clientesData ?? []) as ClienteCompletoRow[];
 
+  // Opciones de filtro (valores distintos presentes en los datos)
+  const ciudadesOpts = Array.from(
+    new Set(clientes.map((c) => (c.ciudad ?? "").trim()).filter(Boolean))
+  ).sort((a, b) => a.localeCompare(b));
+  const materialesOpts = Array.from(
+    new Set(clientes.flatMap((c) => (c.materiales as string[] | null) ?? []))
+  ).sort((a, b) => a.localeCompare(b));
+
   const counts: Record<TabKey, number> = {
     venta:     clientes.filter((c) => c.status === "Venta").length,
     credito:   clientes.filter((c) => c.status === "Credito").length,
@@ -89,7 +101,15 @@ export default async function ClientesPage({
     todos:     clientes.length,
   };
 
-  const filtered = clientes.filter((c) => tabFilter(c, activeTab));
+  const filtered = clientes.filter((c) => {
+    if (!tabFilter(c, activeTab)) return false;
+    if (fCiudad && (c.ciudad ?? "").trim() !== fCiudad) return false;
+    if (fMaterial) {
+      const mats = (c.materiales as string[] | null) ?? [];
+      if (!mats.includes(fMaterial)) return false;
+    }
+    return true;
+  });
 
   type Contacto = { id: string; nombre: string; telefonos: string[]; correo: string | null };
 
@@ -101,10 +121,14 @@ export default async function ClientesPage({
         <div className="flex items-center gap-1 overflow-x-auto">
           {TABS.map((t) => {
             const isActive = t.key === activeTab;
+            const tabParams = new URLSearchParams();
+            tabParams.set("tab", t.key);
+            if (fMaterial) tabParams.set("material", fMaterial);
+            if (fCiudad) tabParams.set("ciudad", fCiudad);
             return (
               <Link
                 key={t.key}
-                href={`/clientes?tab=${t.key}`}
+                href={`/clientes?${tabParams.toString()}`}
                 className={[
                   "flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium whitespace-nowrap transition-all border",
                   isActive
@@ -127,18 +151,23 @@ export default async function ClientesPage({
       </div>
 
       {/* ── Cabecera ────────────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-gray-500 dark:text-slate-400">
-          {filtered.length === clientes.length
-            ? `${clientes.length} clientes en total`
-            : `${filtered.length} de ${clientes.length} clientes`}
-        </p>
-        <Link
-          href="/clientes/nuevo"
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
-        >
-          + Nuevo Cliente
-        </Link>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <Suspense fallback={null}>
+          <ClientesFilters ciudades={ciudadesOpts} materiales={materialesOpts} />
+        </Suspense>
+        <div className="flex items-center gap-3 ml-auto">
+          <p className="text-sm text-gray-500 dark:text-slate-400">
+            {filtered.length === clientes.length
+              ? `${clientes.length} clientes en total`
+              : `${filtered.length} de ${clientes.length} clientes`}
+          </p>
+          <Link
+            href="/clientes/nuevo"
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
+          >
+            + Nuevo Cliente
+          </Link>
+        </div>
       </div>
 
       {/* ── Vista mobile: tarjetas ─────────────────────────────────────── */}

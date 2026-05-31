@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState, useEffect, useRef } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
+import { formatMonto } from "@/lib/utils";
 import type { ActionState } from "@/app/ventas/actions";
 
 interface VentaData {
@@ -14,6 +15,8 @@ interface VentaData {
   fecha_creacion: string;
   fecha_cierre: string;
   notas: string;
+  comision_tipo: "porcentaje" | "monto" | "";
+  comision_valor: string;
 }
 
 interface MaterialOption {
@@ -38,6 +41,31 @@ export default function VentaForm({
 }: VentaFormProps) {
   const [state, formAction, pending] = useActionState(action, undefined);
   const formRef = useRef<HTMLFormElement>(null);
+  const isCreate = !initialData?.id;
+
+  // ── Recordatorio automático de seguimiento (solo al crear) ──
+  const [crearRecordatorio, setCrearRecordatorio] = useState(false);
+  const defaultRecFecha = (() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 7);
+    return d.toISOString().split("T")[0];
+  })();
+
+  // ── Comisión: estado para vista previa en vivo ──
+  const [monto, setMonto] = useState(initialData?.monto ?? "");
+  const [comisionTipo, setComisionTipo] = useState<"porcentaje" | "monto" | "">(
+    initialData?.comision_tipo ?? ""
+  );
+  const [comisionValor, setComisionValor] = useState(initialData?.comision_valor ?? "");
+
+  const montoNum = parseFloat(monto) || 0;
+  const valorNum = parseFloat(comisionValor) || 0;
+  const comisionCalculada =
+    comisionTipo === "porcentaje"
+      ? (montoNum * valorNum) / 100
+      : comisionTipo === "monto"
+      ? valorNum
+      : 0;
 
   useEffect(() => {
     if (state && "error" in state && state.error) {
@@ -134,7 +162,8 @@ export default function VentaForm({
               step="0.01"
               min="0"
               required
-              defaultValue={initialData?.monto ?? ""}
+              value={monto}
+              onChange={(e) => setMonto(e.target.value)}
               className="w-full px-4 py-2.5 border border-gray-300 dark:border-slate-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-700 dark:text-slate-100 dark:placeholder-slate-400"
               placeholder="0.00"
             />
@@ -156,6 +185,63 @@ export default function VentaForm({
               <option value="perdida">Perdida</option>
             </select>
           </div>
+        </div>
+
+        {/* ── Tu comisión ── */}
+        <div className="rounded-lg border border-emerald-100 bg-emerald-50/60 p-4 space-y-4">
+          <div className="flex items-center justify-between">
+            <h4 className="text-sm font-semibold text-emerald-800">Tu comisi&oacute;n</h4>
+            {comisionCalculada > 0 && (
+              <span className="text-sm font-bold text-emerald-700">
+                {formatMonto(comisionCalculada)}
+              </span>
+            )}
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                Tipo de comisi&oacute;n
+              </label>
+              <select
+                name="comision_tipo"
+                value={comisionTipo}
+                onChange={(e) => setComisionTipo(e.target.value as "porcentaje" | "monto" | "")}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white"
+              >
+                <option value="">Sin comisi&oacute;n</option>
+                <option value="porcentaje">Porcentaje (%)</option>
+                <option value="monto">Monto fijo ($)</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                {comisionTipo === "porcentaje"
+                  ? "Porcentaje (%)"
+                  : comisionTipo === "monto"
+                  ? "Monto fijo (MXN)"
+                  : "Valor"}
+              </label>
+              <input
+                name="comision_valor"
+                type="number"
+                step="0.01"
+                min="0"
+                value={comisionValor}
+                onChange={(e) => setComisionValor(e.target.value)}
+                disabled={comisionTipo === ""}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent disabled:bg-gray-100 disabled:text-gray-400"
+                placeholder={comisionTipo === "porcentaje" ? "Ej. 1" : "Ej. 300"}
+              />
+            </div>
+          </div>
+          {comisionTipo !== "" && (
+            <p className="text-xs text-emerald-700">
+              {comisionTipo === "porcentaje"
+                ? `${valorNum || 0}% de ${formatMonto(montoNum)} = `
+                : "Comisión fija = "}
+              <strong>{formatMonto(comisionCalculada)}</strong>
+            </p>
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -195,6 +281,39 @@ export default function VentaForm({
             placeholder="Notas adicionales sobre la venta"
           />
         </div>
+
+        {isCreate && (
+          <div className="rounded-lg border border-blue-100 bg-blue-50/60 p-4 space-y-3">
+            <label className="flex items-center gap-2.5 cursor-pointer">
+              <input
+                type="checkbox"
+                name="crear_recordatorio"
+                checked={crearRecordatorio}
+                onChange={(e) => setCrearRecordatorio(e.target.checked)}
+                className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
+              <span className="text-sm font-medium text-blue-900">
+                Crear recordatorio de seguimiento para esta venta
+              </span>
+            </label>
+            {crearRecordatorio && (
+              <div className="pl-6.5">
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  Fecha del seguimiento
+                </label>
+                <input
+                  name="recordatorio_fecha"
+                  type="date"
+                  defaultValue={defaultRecFecha}
+                  className="w-full md:w-56 px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+                <p className="text-xs text-blue-700/80 mt-1.5">
+                  Se agregará a tus recordatorios con prioridad media a las 09:00.
+                </p>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="flex items-center justify-end gap-3 pt-2">

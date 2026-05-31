@@ -1,5 +1,5 @@
 import { createSupabaseServerClient } from "@/lib/supabase-server";
-import { formatMonto } from "@/lib/utils";
+import { formatMonto, calcComision } from "@/lib/utils";
 import Link from "next/link";
 import type { VentaConUniones } from "@/types/database";
 import DeleteVentaButton from "@/components/ventas/DeleteVentaButton";
@@ -217,6 +217,7 @@ export default async function VentasPage({
                   )}
                   <th className="text-left px-4 py-3 text-gray-500 dark:text-slate-400 font-medium">Cierre Est.</th>
                   <th className="text-right px-4 py-3 text-gray-500 dark:text-slate-400 font-medium">Monto</th>
+                  <th className="text-right px-4 py-3 text-gray-500 dark:text-slate-400 font-medium">Comisi&oacute;n</th>
                   <th className="px-4 py-3 w-20" />
                 </tr>
               </thead>
@@ -247,6 +248,20 @@ export default async function VentasPage({
                     <td className="px-4 py-3 text-gray-500 dark:text-slate-400">{v.fecha_cierre ?? "—"}</td>
                     <td className="px-4 py-3 text-right font-semibold text-gray-800 dark:text-slate-100">
                       {formatMonto(Number(v.monto))}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      {v.comision_tipo ? (
+                        <div className="leading-tight">
+                          <span className="font-semibold text-emerald-700">
+                            {formatMonto(calcComision(Number(v.monto), v.comision_tipo, Number(v.comision_valor)))}
+                          </span>
+                          <span className="block text-[10px] text-gray-400">
+                            {v.comision_tipo === "porcentaje" ? `${v.comision_valor}%` : "fijo"}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-gray-300">—</span>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-1">
@@ -286,6 +301,7 @@ export default async function VentasPage({
                   <td className="px-4 py-3 text-right text-sm font-bold text-gray-900 dark:text-slate-100">
                     {formatMonto(filtMonto)}
                   </td>
+                  <td />
                   <td />
                 </tr>
               </tfoot>

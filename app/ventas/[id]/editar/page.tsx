@@ -59,6 +59,8 @@ export default async function EditarVentaPage({ params }: Props) {
           fecha_creacion: venta.fecha_creacion ?? "",
           fecha_cierre: venta.fecha_cierre ?? "",
           notas: venta.notas ?? "",
+          comision_tipo: (venta.comision_tipo ?? "") as "porcentaje" | "monto" | "",
+          comision_valor: venta.comision_valor?.toString() ?? "",
         }}
         submitLabel="Guardar Cambios"
         clientes={clientes}

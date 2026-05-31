@@ -53,8 +53,18 @@ CREATE TABLE IF NOT EXISTS ventas (
   fecha_creacion DATE         NOT NULL DEFAULT CURRENT_DATE,
   fecha_cierre   DATE,
   notas          TEXT,
+  comision_tipo  VARCHAR(10)  CHECK (comision_tipo IN ('porcentaje','monto')),
+  comision_valor NUMERIC(14,2),
   created_at     TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
   updated_at     TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+);
+
+-- ─── METAS (singleton: meta mensual de $ y toneladas) ────────
+CREATE TABLE IF NOT EXISTS metas (
+  id             SMALLINT      PRIMARY KEY DEFAULT 1 CHECK (id = 1),
+  meta_monto     NUMERIC(14,2) NOT NULL DEFAULT 0,
+  meta_toneladas NUMERIC(10,2) NOT NULL DEFAULT 0,
+  updated_at     TIMESTAMPTZ   NOT NULL DEFAULT NOW()
 );
 
 -- ─── RECORDATORIOS ───────────────────────────────────────────
@@ -95,6 +105,10 @@ CREATE TRIGGER trg_ventas_updated_at
 
 CREATE TRIGGER trg_recordatorios_updated_at
   BEFORE UPDATE ON recordatorios
+  FOR EACH ROW EXECUTE FUNCTION fn_set_updated_at();
+
+CREATE TRIGGER trg_metas_updated_at
+  BEFORE UPDATE ON metas
   FOR EACH ROW EXECUTE FUNCTION fn_set_updated_at();
 
 -- ============================================================
@@ -159,6 +173,7 @@ ALTER TABLE cliente_materiales ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ventas             ENABLE ROW LEVEL SECURITY;
 ALTER TABLE recordatorios      ENABLE ROW LEVEL SECURITY;
 ALTER TABLE materiales         ENABLE ROW LEVEL SECURITY;
+ALTER TABLE metas              ENABLE ROW LEVEL SECURITY;
 
 -- Clientes: lectura/escritura para autenticados
 CREATE POLICY "clientes_auth_all" ON clientes
@@ -178,4 +193,8 @@ CREATE POLICY "recordatorios_auth_all" ON recordatorios
 
 -- Materiales: lectura/escritura para autenticados (catálogo)
 CREATE POLICY "materiales_auth_all" ON materiales
+  FOR ALL TO authenticated USING (true) WITH CHECK (true);
+
+-- Metas: lectura/escritura para autenticados
+CREATE POLICY "metas_auth_all" ON metas
   FOR ALL TO authenticated USING (true) WITH CHECK (true);

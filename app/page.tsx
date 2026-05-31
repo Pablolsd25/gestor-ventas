@@ -1,6 +1,7 @@
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { formatMonto } from "@/lib/utils";
-import type { ClienteCompletoRow, VentaConUniones, RecordatorioConUniones } from "@/types/database";
+import type { ClienteCompletoRow, VentaConUniones, RecordatorioConUniones, MetaRow } from "@/types/database";
+import MetasEditor from "@/components/dashboard/MetasEditor";
 import Link from "next/link";
 
 // ── Static maps ───────────────────────────────────────────────────────────────
@@ -124,6 +125,43 @@ function KpiCard({
 
 // ── Section header ────────────────────────────────────────────────────────────
 
+// ── Meta progress bar ─────────────────────────────────────────────────────────
+
+function MetaBar({
+  titulo, actualLabel, metaLabel, pct, barColor, cumplida, restante,
+}: {
+  titulo: string;
+  actualLabel: string;
+  metaLabel: string;
+  pct: number;
+  barColor: string;
+  cumplida: boolean;
+  restante: string;
+}) {
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-1.5">
+        <span className="text-sm font-medium text-gray-700">{titulo}</span>
+        <span className="text-xs text-gray-500">
+          {actualLabel} <span className="text-gray-300">/</span> {metaLabel}
+        </span>
+      </div>
+      <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
+        <div
+          className={`h-full rounded-full transition-all ${cumplida ? "bg-emerald-500" : barColor}`}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+      <div className="flex items-center justify-between mt-1.5">
+        <span className={`text-xs font-medium ${cumplida ? "text-emerald-600" : "text-gray-500"}`}>
+          {cumplida ? "¡Meta cumplida! 🎉" : restante}
+        </span>
+        <span className="text-xs font-semibold text-gray-700">{pct}%</span>
+      </div>
+    </div>
+  );
+}
+
 function SectionHeader({ title, href, linkLabel }: { title: string; href?: string; linkLabel?: string }) {
   return (
     <div className="flex items-center justify-between mb-4">
@@ -146,6 +184,7 @@ export default async function DashboardPage() {
     { data: clientesData },
     { data: ventasData },
     { data: recordatoriosData },
+    { data: metaData },
   ] = await Promise.all([
     supabase.from("v_clientes").select("*").order("razon_social"),
     supabase
@@ -157,11 +196,15 @@ export default async function DashboardPage() {
       .select("*, clientes(razon_social)")
       .order("fecha")
       .order("hora"),
+    supabase.from("metas").select("*").eq("id", 1).maybeSingle(),
   ]);
 
   const clientes      = (clientesData      ?? []) as ClienteCompletoRow[];
   const ventas        = (ventasData        ?? []) as VentaConUniones[];
   const recordatorios = (recordatoriosData ?? []) as RecordatorioConUniones[];
+  const meta          = (metaData ?? null) as MetaRow | null;
+  const metaMonto     = Number(meta?.meta_monto ?? 0);
+  const metaToneladas = Number(meta?.meta_toneladas ?? 0);
 
   // ── KPIs ─────────────────────────────────────────────────────────────────
   const enVenta    = clientes.filter((c) => c.status === "Venta").length;
@@ -181,6 +224,18 @@ export default async function DashboardPage() {
 
   const proximosRecordatorios = recordatorios.filter((r) => !r.completado).slice(0, 5);
   const ultimasVentas         = ventas.slice(0, 5);
+
+  // ── Progreso de metas (mes en curso) ──────────────────────────────────────
+  const mesActual = new Date().toISOString().slice(0, 7); // "YYYY-MM"
+  const ganadasMes = ventasGanadas.filter((v) => v.fecha_creacion?.slice(0, 7) === mesActual);
+  const montoMes = ganadasMes.reduce((acc, v) => acc + Number(v.monto), 0);
+  const tonMes   = ganadasMes.reduce((acc, v) => acc + Number(v.cantidad ?? 0), 0);
+
+  const pctMonto = metaMonto     > 0 ? Math.min(Math.round((montoMes / metaMonto) * 100), 100) : 0;
+  const pctTon   = metaToneladas > 0 ? Math.min(Math.round((tonMes / metaToneladas) * 100), 100) : 0;
+  const faltaMonto = Math.max(metaMonto - montoMes, 0);
+  const faltaTon   = Math.max(metaToneladas - tonMes, 0);
+  const nombreMes = new Date().toLocaleDateString("es-MX", { month: "long", year: "numeric" });
 
   return (
     <div className="space-y-7">
@@ -203,6 +258,46 @@ export default async function DashboardPage() {
           </svg>
         </Link>
       )}
+
+      {/* ── Metas del mes ─────────────────────────────────────── */}
+      <section className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="font-semibold text-gray-800 text-base">Metas del Mes</h3>
+            <p className="text-xs text-gray-400 capitalize mt-0.5">{nombreMes}</p>
+          </div>
+          <MetasEditor metaMonto={metaMonto} metaToneladas={metaToneladas} />
+        </div>
+
+        {metaMonto === 0 && metaToneladas === 0 ? (
+          <p className="text-sm text-gray-400 text-center py-4">
+            Aún no defines tus metas. Haz clic en &ldquo;Editar metas&rdquo; para empezar.
+          </p>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {/* Meta de dinero */}
+            <MetaBar
+              titulo="Facturación"
+              actualLabel={formatMonto(montoMes)}
+              metaLabel={formatMonto(metaMonto)}
+              pct={pctMonto}
+              barColor="bg-emerald-500"
+              cumplida={metaMonto > 0 && montoMes >= metaMonto}
+              restante={metaMonto > 0 ? `Te faltan ${formatMonto(faltaMonto)}` : "Sin meta definida"}
+            />
+            {/* Meta de toneladas */}
+            <MetaBar
+              titulo="Toneladas"
+              actualLabel={`${tonMes} ton`}
+              metaLabel={`${metaToneladas} ton`}
+              pct={pctTon}
+              barColor="bg-blue-500"
+              cumplida={metaToneladas > 0 && tonMes >= metaToneladas}
+              restante={metaToneladas > 0 ? `Te faltan ${faltaTon} ton` : "Sin meta definida"}
+            />
+          </div>
+        )}
+      </section>
 
       {/* ── Cartera de clientes ───────────────────────────────── */}
       <section>

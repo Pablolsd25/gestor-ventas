@@ -65,7 +65,7 @@ export default function MaterialList({
 
   async function handleDelete(id: number) {
     if (!confirm("¿Eliminar este material? Los clientes que lo usen dejarán de tenerlo asignado.")) return;
-    const res = await deleteMaterialAction(id);
+    const res = await deleteMaterialAction(id, undefined, new FormData());
     if (res.success) {
       showToast("Material eliminado correctamente");
       router.refresh();

@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import SearchModal from "@/components/layout/SearchModal";
 import { useTheme } from "@/components/layout/ThemeProvider";
+import Avatar from "@/components/layout/Avatar";
 
 // ── Breadcrumb helpers ────────────────────────────────────────────────────────
 
@@ -12,15 +13,23 @@ const TOP_TITLES: Record<string, string> = {
   "/":              "Dashboard",
   "/clientes":      "Clientes",
   "/ventas":        "Ventas",
+  "/cotizador":     "Cotizador",
   "/recordatorios": "Recordatorios",
+  "/notas":         "Notas",
+  "/materiales":    "Materiales",
   "/resultados":    "Resultados",
+  "/perfil":        "Mi perfil",
 };
 
 const SEGMENT_LABELS: Record<string, string> = {
   clientes:      "Clientes",
   ventas:        "Ventas",
+  cotizador:     "Cotizador",
   recordatorios: "Recordatorios",
+  notas:         "Notas",
+  materiales:    "Materiales",
   resultados:    "Resultados",
+  perfil:        "Mi perfil",
   nuevo:         "Nuevo",
   editar:        "Editar",
 };
@@ -50,7 +59,15 @@ function buildBreadcrumbs(pathname: string): Crumb[] | null {
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-export default function Header({ onMenuClick }: { onMenuClick: () => void }) {
+export default function Header({
+  onMenuClick,
+  nombre,
+  fotoUrl,
+}: {
+  onMenuClick: () => void;
+  nombre: string;
+  fotoUrl: string | null;
+}) {
   const pathname   = usePathname();
   const topSection = "/" + (pathname.split("/")[1] ?? "");
   const title      = TOP_TITLES[topSection] ?? "GestorVentas";
@@ -161,9 +178,9 @@ export default function Header({ onMenuClick }: { onMenuClick: () => void }) {
         </button>
 
         {/* Avatar */}
-        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white text-xs font-bold shadow-sm">
-          V
-        </div>
+        <Link href="/perfil" title="Mi perfil">
+          <Avatar nombre={nombre} fotoUrl={fotoUrl} />
+        </Link>
       </div>
 
       <SearchModal isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
