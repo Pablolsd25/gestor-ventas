@@ -12,13 +12,13 @@ export default async function PerfilPage() {
   return (
     <div className="max-w-xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-xl font-bold text-gray-800">Mi perfil</h1>
-        <p className="text-sm text-gray-500 mt-1">
+        <h1 className="text-xl font-bold text-gray-800 dark:text-slate-100">Mi perfil</h1>
+        <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">
           Tu nombre y foto aparecen en la barra lateral y el encabezado.
         </p>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm ring-1 ring-black/5 p-6">
+      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm ring-1 ring-black/5 dark:ring-slate-700 p-6">
         <PerfilForm
           nombre={perfil?.nombre ?? ""}
           puesto={perfil?.puesto ?? ""}

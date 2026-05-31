@@ -47,63 +47,63 @@ export default async function CotizacionDetallePage({
     <div className="space-y-5">
       {/* Barra de acciones — se oculta al imprimir */}
       <div className="flex items-center justify-between print:hidden">
-        <Link href="/cotizador" className="text-sm text-blue-600 hover:underline">
+        <Link href="/cotizador" className="text-sm text-blue-600 dark:text-blue-400 hover:underline">
           &larr; Volver al Cotizador
         </Link>
         <CotizacionActions id={cot.id} />
       </div>
 
       {/* Documento */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 max-w-3xl mx-auto print:shadow-none print:border-0">
-        <div className="flex items-start justify-between border-b border-gray-200 pb-5">
+      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 p-8 max-w-3xl mx-auto print:shadow-none print:border-0 print:dark:bg-white">
+        <div className="flex items-start justify-between border-b border-gray-200 dark:border-slate-700 pb-5">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Cotización</h1>
-            <p className="text-sm text-gray-500 mt-1 font-mono">Folio #{cot.folio}</p>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100">Cotización</h1>
+            <p className="text-sm text-gray-500 dark:text-slate-400 mt-1 font-mono">Folio #{cot.folio}</p>
           </div>
           <div className="text-right text-sm">
-            <p className="font-semibold text-gray-800">{perfil?.nombre ?? "Vendedor"}</p>
-            {perfil?.puesto && <p className="text-gray-500">{perfil.puesto}</p>}
+            <p className="font-semibold text-gray-800 dark:text-slate-200">{perfil?.nombre ?? "Vendedor"}</p>
+            {perfil?.puesto && <p className="text-gray-500 dark:text-slate-400">{perfil.puesto}</p>}
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4 py-5 text-sm">
           <div>
-            <p className="text-xs text-gray-400 uppercase tracking-wide">Cliente</p>
-            <p className="text-gray-800 font-medium">{cot.cliente_nombre ?? "—"}</p>
+            <p className="text-xs text-gray-400 dark:text-slate-500 uppercase tracking-wide">Cliente</p>
+            <p className="text-gray-800 dark:text-slate-200 font-medium">{cot.cliente_nombre ?? "—"}</p>
           </div>
           <div className="text-right">
-            <p className="text-xs text-gray-400 uppercase tracking-wide">Fecha</p>
-            <p className="text-gray-800">{fechaStr}</p>
-            <p className="text-xs text-gray-400 uppercase tracking-wide mt-2">Válida hasta</p>
-            <p className="text-gray-800">{venceStr}</p>
+            <p className="text-xs text-gray-400 dark:text-slate-500 uppercase tracking-wide">Fecha</p>
+            <p className="text-gray-800 dark:text-slate-200">{fechaStr}</p>
+            <p className="text-xs text-gray-400 dark:text-slate-500 uppercase tracking-wide mt-2">Válida hasta</p>
+            <p className="text-gray-800 dark:text-slate-200">{venceStr}</p>
           </div>
         </div>
 
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-y border-gray-200 text-gray-500">
+            <tr className="border-y border-gray-200 dark:border-slate-700 text-gray-500 dark:text-slate-400">
               <th className="text-left py-2 font-medium">Descripción</th>
               <th className="text-right py-2 font-medium w-20">Cant.</th>
               <th className="text-right py-2 font-medium w-32">P. unitario</th>
               <th className="text-right py-2 font-medium w-32">Importe</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
             {items.map((it) => (
               <tr key={it.id}>
-                <td className="py-2.5 text-gray-800">{it.descripcion}</td>
-                <td className="py-2.5 text-right text-gray-600">{it.cantidad}</td>
-                <td className="py-2.5 text-right text-gray-600">{formatMonto(it.precio_unitario)}</td>
-                <td className="py-2.5 text-right text-gray-800 font-medium">
+                <td className="py-2.5 text-gray-800 dark:text-slate-200">{it.descripcion}</td>
+                <td className="py-2.5 text-right text-gray-600 dark:text-slate-300">{it.cantidad}</td>
+                <td className="py-2.5 text-right text-gray-600 dark:text-slate-300">{formatMonto(it.precio_unitario)}</td>
+                <td className="py-2.5 text-right text-gray-800 dark:text-slate-200 font-medium">
                   {formatMonto(it.cantidad * it.precio_unitario)}
                 </td>
               </tr>
             ))}
           </tbody>
           <tfoot>
-            <tr className="border-t-2 border-gray-200">
-              <td colSpan={3} className="py-3 text-right font-semibold text-gray-700">Total</td>
-              <td className="py-3 text-right text-lg font-bold text-gray-900">
+            <tr className="border-t-2 border-gray-200 dark:border-slate-600">
+              <td colSpan={3} className="py-3 text-right font-semibold text-gray-700 dark:text-slate-300">Total</td>
+              <td className="py-3 text-right text-lg font-bold text-gray-900 dark:text-slate-100">
                 {formatMonto(cot.total)}
               </td>
             </tr>
@@ -111,9 +111,9 @@ export default async function CotizacionDetallePage({
         </table>
 
         {cot.notas && (
-          <div className="mt-6 pt-4 border-t border-gray-100">
-            <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">Notas y condiciones</p>
-            <p className="text-sm text-gray-700 whitespace-pre-wrap">{cot.notas}</p>
+          <div className="mt-6 pt-4 border-t border-gray-100 dark:border-slate-700">
+            <p className="text-xs text-gray-400 dark:text-slate-500 uppercase tracking-wide mb-1">Notas y condiciones</p>
+            <p className="text-sm text-gray-700 dark:text-slate-300 whitespace-pre-wrap">{cot.notas}</p>
           </div>
         )}
       </div>

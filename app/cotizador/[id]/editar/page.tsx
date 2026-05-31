@@ -58,12 +58,12 @@ export default async function EditarCotizacionPage({
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
-      <Link href={`/cotizador/${id}`} className="text-sm text-blue-600 hover:underline">
+      <Link href={`/cotizador/${id}`} className="text-sm text-blue-600 dark:text-blue-400 hover:underline">
         &larr; Volver a la cotización
       </Link>
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Editar cotización</h1>
-        <p className="text-sm text-gray-500 mt-1">Folio #{cot.folio}</p>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100">Editar cotización</h1>
+        <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">Folio #{cot.folio}</p>
       </div>
 
       <CotizacionForm

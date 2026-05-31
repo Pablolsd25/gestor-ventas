@@ -31,6 +31,12 @@ interface Props {
 
 const emptyItem = (): Item => ({ descripcion: "", material_id: "", cantidad: "1", precio_unitario: "0" });
 
+// Clases reutilizables
+const inputCls = "w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm text-gray-800 dark:text-slate-100 bg-white dark:bg-slate-700 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent";
+const selectCls = "w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm text-gray-800 dark:text-slate-100 bg-white dark:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent";
+const labelCls = "block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5";
+const cardCls = "bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 p-6";
+
 export default function CotizacionForm({
   action,
   submitLabel,
@@ -70,7 +76,6 @@ export default function CotizacionForm({
     setItems((prev) => (prev.length === 1 ? prev : prev.filter((_, i) => i !== idx)));
   }
 
-  // Si elige cliente del catálogo, usamos su razón social como nombre snapshot.
   const selectedClienteNombre = clientes.find((c) => c.id === clienteId)?.razon_social ?? "";
   const itemsJson = JSON.stringify(
     items.map((it) => ({
@@ -84,7 +89,7 @@ export default function CotizacionForm({
   return (
     <form ref={formRef} action={formAction} className="space-y-6">
       {state?.error && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+        <div className="p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-700 dark:text-red-300">
           {state.error}
         </div>
       )}
@@ -97,19 +102,19 @@ export default function CotizacionForm({
       />
 
       {/* ── Datos generales ── */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-5">
-        <h3 className="font-semibold text-gray-800 text-base border-b border-gray-100 pb-3">
+      <div className={cardCls + " space-y-5"}>
+        <h3 className="font-semibold text-gray-800 dark:text-slate-100 text-base border-b border-gray-100 dark:border-slate-700 pb-3">
           Datos de la cotización
         </h3>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Cliente del catálogo</label>
+            <label className={labelCls}>Cliente del catálogo</label>
             <select
               name="cliente_id"
               value={clienteId}
               onChange={(e) => setClienteId(e.target.value)}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+              className={selectCls}
             >
               <option value="">— Sin cliente / manual —</option>
               {clientes.map((c) => (
@@ -118,7 +123,7 @@ export default function CotizacionForm({
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            <label className={labelCls}>
               Nombre del cliente {clienteId ? "(del catálogo)" : ""}
             </label>
             <input
@@ -126,42 +131,42 @@ export default function CotizacionForm({
               onChange={(e) => setClienteNombre(e.target.value)}
               disabled={!!clienteId}
               placeholder="Nombre o razón social"
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500"
+              className={inputCls + " disabled:bg-gray-100 disabled:dark:bg-slate-700/50 disabled:text-gray-500 disabled:dark:text-slate-500"}
             />
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Fecha</label>
+            <label className={labelCls}>Fecha</label>
             <input
               name="fecha"
               type="date"
               defaultValue={initialData?.fecha ?? new Date().toISOString().split("T")[0]}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={inputCls}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Validez (días)</label>
+            <label className={labelCls}>Validez (días)</label>
             <input
               name="validez_dias"
               type="number"
               min="0"
               defaultValue={initialData?.validez_dias ?? "15"}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={inputCls}
             />
           </div>
         </div>
       </div>
 
       {/* ── Partidas ── */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-4">
-        <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-          <h3 className="font-semibold text-gray-800 text-base">Partidas</h3>
+      <div className={cardCls + " space-y-4"}>
+        <div className="flex items-center justify-between border-b border-gray-100 dark:border-slate-700 pb-3">
+          <h3 className="font-semibold text-gray-800 dark:text-slate-100 text-base">Partidas</h3>
           <button
             type="button"
             onClick={addItem}
-            className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+            className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium"
           >
             + Agregar partida
           </button>
@@ -177,14 +182,14 @@ export default function CotizacionForm({
                     value={it.descripcion}
                     onChange={(e) => updateItem(idx, { descripcion: e.target.value })}
                     placeholder="Descripción"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className={inputCls}
                   />
                 </div>
                 <div className="col-span-5 md:col-span-3">
                   <select
                     value={it.material_id}
                     onChange={(e) => updateItem(idx, { material_id: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                    className={selectCls}
                   >
                     <option value="">Material…</option>
                     {materiales.map((m) => (
@@ -200,7 +205,7 @@ export default function CotizacionForm({
                     step="0.01"
                     min="0"
                     placeholder="Cant."
-                    className="w-full px-2 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className={inputCls}
                   />
                 </div>
                 <div className="col-span-4 md:col-span-2">
@@ -211,10 +216,10 @@ export default function CotizacionForm({
                     step="0.01"
                     min="0"
                     placeholder="P. unit."
-                    className="w-full px-2 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className={inputCls}
                   />
                 </div>
-                <div className="col-span-6 md:col-span-1 flex items-center text-sm text-gray-700 font-medium pt-2">
+                <div className="col-span-6 md:col-span-1 flex items-center text-sm text-gray-700 dark:text-slate-300 font-medium pt-2">
                   {formatMonto(subtotal)}
                 </div>
                 <div className="col-span-2 md:col-span-1 flex items-center justify-end pt-1">
@@ -222,7 +227,7 @@ export default function CotizacionForm({
                     type="button"
                     onClick={() => removeItem(idx)}
                     disabled={items.length === 1}
-                    className="text-gray-400 hover:text-red-600 disabled:opacity-30 p-1.5"
+                    className="text-gray-400 dark:text-slate-500 hover:text-red-600 dark:hover:text-red-400 disabled:opacity-30 p-1.5"
                     title="Eliminar partida"
                   >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -235,30 +240,30 @@ export default function CotizacionForm({
           })}
         </div>
 
-        <div className="flex justify-end pt-3 border-t border-gray-100">
+        <div className="flex justify-end pt-3 border-t border-gray-100 dark:border-slate-700">
           <div className="text-right">
-            <p className="text-xs text-gray-500 uppercase tracking-wide">Total</p>
-            <p className="text-2xl font-bold text-gray-900">{formatMonto(total)}</p>
+            <p className="text-xs text-gray-500 dark:text-slate-400 uppercase tracking-wide">Total</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-slate-100">{formatMonto(total)}</p>
           </div>
         </div>
       </div>
 
       {/* ── Notas ── */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-        <label className="block text-sm font-medium text-gray-700 mb-1.5">Notas / condiciones</label>
+      <div className={cardCls}>
+        <label className={labelCls}>Notas / condiciones</label>
         <textarea
           name="notas"
           rows={3}
           defaultValue={initialData?.notas ?? ""}
           placeholder="Condiciones de pago, entrega, etc."
-          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+          className={inputCls + " resize-none"}
         />
       </div>
 
       <div className="flex items-center justify-end gap-3 pt-2">
         <Link
           href="/cotizador"
-          className="px-5 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+          className="px-5 py-2.5 border border-gray-300 dark:border-slate-600 rounded-lg text-sm font-medium text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
         >
           Cancelar
         </Link>

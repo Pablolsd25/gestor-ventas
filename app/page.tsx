@@ -141,22 +141,22 @@ function MetaBar({
   return (
     <div>
       <div className="flex items-center justify-between mb-1.5">
-        <span className="text-sm font-medium text-gray-700">{titulo}</span>
-        <span className="text-xs text-gray-500">
-          {actualLabel} <span className="text-gray-300">/</span> {metaLabel}
+        <span className="text-sm font-medium text-gray-700 dark:text-slate-300">{titulo}</span>
+        <span className="text-xs text-gray-500 dark:text-slate-400">
+          {actualLabel} <span className="text-gray-300 dark:text-slate-600">/</span> {metaLabel}
         </span>
       </div>
-      <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
+      <div className="h-3 bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden">
         <div
           className={`h-full rounded-full transition-all ${cumplida ? "bg-emerald-500" : barColor}`}
           style={{ width: `${pct}%` }}
         />
       </div>
       <div className="flex items-center justify-between mt-1.5">
-        <span className={`text-xs font-medium ${cumplida ? "text-emerald-600" : "text-gray-500"}`}>
+        <span className={`text-xs font-medium ${cumplida ? "text-emerald-600 dark:text-emerald-400" : "text-gray-500 dark:text-slate-400"}`}>
           {cumplida ? "¡Meta cumplida! 🎉" : restante}
         </span>
-        <span className="text-xs font-semibold text-gray-700">{pct}%</span>
+        <span className="text-xs font-semibold text-gray-700 dark:text-slate-300">{pct}%</span>
       </div>
     </div>
   );
@@ -260,17 +260,17 @@ export default async function DashboardPage() {
       )}
 
       {/* ── Metas del mes ─────────────────────────────────────── */}
-      <section className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+      <section className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 p-5">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h3 className="font-semibold text-gray-800 text-base">Metas del Mes</h3>
-            <p className="text-xs text-gray-400 capitalize mt-0.5">{nombreMes}</p>
+            <h3 className="font-semibold text-gray-800 dark:text-slate-100 text-base">Metas del Mes</h3>
+            <p className="text-xs text-gray-400 dark:text-slate-500 capitalize mt-0.5">{nombreMes}</p>
           </div>
           <MetasEditor metaMonto={metaMonto} metaToneladas={metaToneladas} />
         </div>
 
         {metaMonto === 0 && metaToneladas === 0 ? (
-          <p className="text-sm text-gray-400 text-center py-4">
+          <p className="text-sm text-gray-400 dark:text-slate-500 text-center py-4">
             Aún no defines tus metas. Haz clic en &ldquo;Editar metas&rdquo; para empezar.
           </p>
         ) : (
