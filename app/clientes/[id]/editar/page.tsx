@@ -8,7 +8,7 @@ interface Props {
   params: Promise<{ id: string }>;
 }
 
-type Contacto = { id: string; nombre: string; telefonos: string[]; correo: string | null };
+type Contacto = { id: string; nombre: string; telefonos: string[]; correos: string[] };
 type ClienteRow = {
   id: string;
   razon_social: string;
@@ -16,6 +16,7 @@ type ClienteRow = {
   ciudad: string;
   pagina_web: string | null;
   status: "Venta" | "Credito" | "Prospecto" | null;
+  semaforo: "verde" | "amarillo" | "rojo" | null;
   comentarios: string | null;
 };
 
@@ -44,16 +45,17 @@ export default async function EditarClientePage({ params }: Props) {
     .select("material_id")
     .eq("cliente_id", id);
 
-  const contactos: Contacto[] = ((contactosResult.data ?? []) as Array<{
+  const contactos = ((contactosResult.data ?? []) as Array<{
     id: string;
     nombre: string;
     telefonos: string[];
+    correos?: string[];
     correo: string | null;
   }>).map((c) => ({
     id: c.id,
     nombre: c.nombre,
     telefonos: c.telefonos ?? [],
-    correo: c.correo ?? "",
+    correos: c.correos?.length ? c.correos : c.correo ? [c.correo] : [""],
   }));
 
   const { data: allMateriales } = await supabase
@@ -97,6 +99,7 @@ export default async function EditarClientePage({ params }: Props) {
           ciudad: cliente.ciudad,
           pagina_web: cliente.pagina_web ?? "",
           status: (cliente.status ?? "") as "Venta" | "Credito" | "Prospecto" | "",
+          semaforo: (cliente.semaforo ?? "") as "verde" | "amarillo" | "rojo" | "",
           comentarios: cliente.comentarios ?? "",
           contactos,
           materiales,

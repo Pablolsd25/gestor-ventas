@@ -7,7 +7,7 @@ interface ContactoData {
   id?: string;
   nombre: string;
   telefonos: string[];
-  correo: string | null;
+  correos: string[];
 }
 
 interface MaterialOption {
@@ -24,8 +24,9 @@ interface FormProps {
     ciudad: string;
     pagina_web: string;
     status: "Venta" | "Credito" | "Prospecto" | "";
+    semaforo: "verde" | "amarillo" | "rojo" | "";
     comentarios: string;
-    contactos: ContactoData[];
+    contactos: (ContactoData & { correo?: string | null })[];
     materiales: string[] | number[];
   };
   submitLabel: string;
@@ -34,7 +35,7 @@ interface FormProps {
 }
 
 function emptyContacto(): ContactoData {
-  return { nombre: "", telefonos: [""], correo: null };
+  return { nombre: "", telefonos: [""], correos: [""] };
 }
 
 export default function ClienteForm({
@@ -47,7 +48,16 @@ export default function ClienteForm({
   const formRef = useRef<HTMLFormElement>(null);
 
   const [contactos, setContactos] = React.useState<ContactoData[]>(
-    initialData?.contactos?.length ? initialData.contactos : [{ ...emptyContacto() }]
+    initialData?.contactos?.length
+      ? initialData.contactos.map((c) => ({
+          ...c,
+          correos: c.correos?.length
+            ? c.correos
+            : c.correo
+              ? [c.correo]
+              : [""],
+        }))
+      : [{ ...emptyContacto() }]
   );
   const [selectedMaterials, setSelectedMaterials] = React.useState<Set<number>>(
     () => {
@@ -131,6 +141,38 @@ export default function ClienteForm({
       const telefonos = [...next[contactoIndex].telefonos];
       telefonos[telefonoIndex] = value;
       next[contactoIndex] = { ...next[contactoIndex], telefonos };
+      return next;
+    });
+  }
+
+  function addCorreo(contactoIndex: number) {
+    setContactos((prev) => {
+      const next = [...prev];
+      next[contactoIndex] = {
+        ...next[contactoIndex],
+        correos: [...next[contactoIndex].correos, ""],
+      };
+      return next;
+    });
+  }
+
+  function removeCorreo(contactoIndex: number, correoIndex: number) {
+    setContactos((prev) => {
+      const next = [...prev];
+      next[contactoIndex] = {
+        ...next[contactoIndex],
+        correos: next[contactoIndex].correos.filter((_, i) => i !== correoIndex),
+      };
+      return next;
+    });
+  }
+
+  function updateCorreo(contactoIndex: number, correoIndex: number, value: string) {
+    setContactos((prev) => {
+      const next = [...prev];
+      const correos = [...next[contactoIndex].correos];
+      correos[correoIndex] = value;
+      next[contactoIndex] = { ...next[contactoIndex], correos };
       return next;
     });
   }
@@ -220,20 +262,37 @@ export default function ClienteForm({
           </div>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">
-            Status
-          </label>
-          <select
-            name="status"
-            defaultValue={initialData?.status ?? ""}
-            className="w-full px-4 py-2.5 border border-gray-300 dark:border-slate-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 dark:text-slate-100"
-          >
-            <option value="">Sin clasificar</option>
-            <option value="Venta">Venta</option>
-            <option value="Credito">Cr&eacute;dito</option>
-            <option value="Prospecto">Prospecto</option>
-          </select>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">
+              Status
+            </label>
+            <select
+              name="status"
+              defaultValue={initialData?.status ?? ""}
+              className="w-full px-4 py-2.5 border border-gray-300 dark:border-slate-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 dark:text-slate-100"
+            >
+              <option value="">Sin clasificar</option>
+              <option value="Venta">Venta</option>
+              <option value="Credito">Cr&eacute;dito</option>
+              <option value="Prospecto">Prospecto</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">
+              Sem&aacute;foro
+            </label>
+            <select
+              name="semaforo"
+              defaultValue={initialData?.semaforo ?? ""}
+              className="w-full px-4 py-2.5 border border-gray-300 dark:border-slate-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 dark:text-slate-100"
+            >
+              <option value="">Sin asignar</option>
+              <option value="verde">🟢 Verde — buen estado</option>
+              <option value="amarillo">🟡 Amarillo — atenci&oacute;n</option>
+              <option value="rojo">🔴 Rojo — urgente</option>
+            </select>
+          </div>
         </div>
 
         <div>
@@ -329,13 +388,38 @@ export default function ClienteForm({
               </button>
             </div>
 
-            <input
-              type="email"
-              placeholder="Correo electr&oacute;nico"
-              value={contacto.correo ?? ""}
-              onChange={(e) => updateContacto(idx, "correo", e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-700 dark:text-slate-100 dark:placeholder-slate-400"
-            />
+            <div>
+              <label className="block text-xs text-gray-500 dark:text-slate-400 mb-1.5">Correos</label>
+              <div className="space-y-1.5">
+                {(contacto.correos.length ? contacto.correos : [""]).map((email, emailIdx) => (
+                  <div key={emailIdx} className="flex gap-2">
+                    <input
+                      type="email"
+                      placeholder="correo@empresa.com"
+                      value={email}
+                      onChange={(e) => updateCorreo(idx, emailIdx, e.target.value)}
+                      className="flex-1 px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-700 dark:text-slate-100 dark:placeholder-slate-400"
+                    />
+                    {contacto.correos.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeCorreo(idx, emailIdx)}
+                        className="text-gray-400 hover:text-red-500 dark:text-slate-500 dark:hover:text-red-400 text-sm px-2"
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <button
+                type="button"
+                onClick={() => addCorreo(idx)}
+                className="mt-1.5 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700"
+              >
+                + Agregar correo
+              </button>
+            </div>
           </div>
         ))}
       </div>

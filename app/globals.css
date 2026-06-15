@@ -92,3 +92,49 @@ body {
 .search-modal {
   animation: modal-in 0.18s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
+
+/* ── Form controls: legible en claro y oscuro ─────────────── */
+select,
+input[type="search"],
+input[type="text"]:not([class*="bg-transparent"]),
+input[type="email"],
+input[type="tel"],
+input[type="number"],
+input[type="date"],
+input[type="time"],
+input[type="password"],
+textarea:not([class*="bg-transparent"]) {
+  color: #1f2937;
+  background-color: #ffffff;
+}
+
+.dark select,
+.dark input[type="search"],
+.dark input[type="text"]:not([class*="bg-transparent"]),
+.dark input[type="email"],
+.dark input[type="tel"],
+.dark input[type="number"],
+.dark input[type="date"],
+.dark input[type="time"],
+.dark input[type="password"],
+.dark textarea:not([class*="bg-transparent"]) {
+  color: #f1f5f9;
+  background-color: #334155;
+}
+
+/* ── Print styles ───────────────────────────────────────── */
+@media print {
+  aside,
+  header {
+    display: none !important;
+  }
+
+  body {
+    background: white !important;
+    color: black !important;
+  }
+
+  main {
+    padding: 0 !important;
+  }
+}

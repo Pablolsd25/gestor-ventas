@@ -35,7 +35,7 @@ export default function ClientesFilters({ ciudades, materiales }: Props) {
       <select
         value={material}
         onChange={(e) => update("material", e.target.value)}
-        className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
       >
         <option value="">Todos los materiales</option>
         {materiales.map((m) => (
@@ -46,7 +46,7 @@ export default function ClientesFilters({ ciudades, materiales }: Props) {
       <select
         value={ciudad}
         onChange={(e) => update("ciudad", e.target.value)}
-        className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
       >
         <option value="">Todas las ciudades</option>
         {ciudades.map((c) => (
@@ -57,7 +57,7 @@ export default function ClientesFilters({ ciudades, materiales }: Props) {
       {hasFilters && (
         <button
           onClick={clear}
-          className="text-xs text-gray-500 hover:text-gray-700 px-2 py-2 hover:underline"
+          className="text-xs text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200 px-2 py-2 hover:underline"
         >
           Limpiar filtros
         </button>

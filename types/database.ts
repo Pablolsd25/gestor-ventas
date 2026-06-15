@@ -36,6 +36,7 @@ export interface Database {
           razon_social: string;
           ciudad:       string;
           status:       "Venta" | "Credito" | "Prospecto" | null;
+          semaforo:     "verde" | "amarillo" | "rojo" | null;
           comentarios:  string | null;
           pagina_web:   string | null;
           created_at:   string;
@@ -47,6 +48,7 @@ export interface Database {
           razon_social: string;
           ciudad?:      string;
           status?:      "Venta" | "Credito" | "Prospecto" | null;
+          semaforo?:    "verde" | "amarillo" | "rojo" | null;
           comentarios?: string | null;
           pagina_web?:  string | null;
           created_at?:  string;
@@ -58,6 +60,7 @@ export interface Database {
           razon_social?: string;
           ciudad?:       string;
           status?:       "Venta" | "Credito" | "Prospecto" | null;
+          semaforo?:     "verde" | "amarillo" | "rojo" | null;
           comentarios?:  string | null;
           pagina_web?:   string | null;
           updated_at?:   string;
@@ -71,6 +74,7 @@ export interface Database {
           cliente_id: string;   // UUID → clientes.id
           nombre:     string;
           telefonos:  string[];
+          correos:    string[];
           correo:     string | null;
           created_at: string;
         };
@@ -79,12 +83,14 @@ export interface Database {
           cliente_id: string;
           nombre?:    string;
           telefonos?: string[];
+          correos?:   string[];
           correo?:    string | null;
           created_at?: string;
         };
         Update: {
           nombre?:    string;
           telefonos?: string[];
+          correos?:   string[];
           correo?:    string | null;
         };
       };
@@ -224,6 +230,7 @@ export interface Database {
           nombre:     string;
           puesto:     string | null;
           foto_url:   string | null;
+          caja_fuerte_pin_hash: string | null;
           updated_at: string;
         };
         Insert: {
@@ -231,12 +238,14 @@ export interface Database {
           nombre?:    string;
           puesto?:    string | null;
           foto_url?:  string | null;
+          caja_fuerte_pin_hash?: string | null;
           updated_at?: string;
         };
         Update: {
           nombre?:    string;
           puesto?:    string | null;
           foto_url?:  string | null;
+          caja_fuerte_pin_hash?: string | null;
           updated_at?: string;
         };
       };
@@ -342,6 +351,7 @@ export interface Database {
           razon_social: string;
           ciudad:       string;
           status:       "Venta" | "Credito" | "Prospecto" | null;
+          semaforo:     "verde" | "amarillo" | "rojo" | null;
           comentarios:  string | null;
           pagina_web:   string | null;
           created_at:   string;
@@ -350,6 +360,7 @@ export interface Database {
             id:        string;
             nombre:    string;
             telefonos: string[];
+            correos:   string[];
             correo:    string | null;
           }>;
           materiales:   string[];

@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS clientes (
   razon_social VARCHAR(255) NOT NULL,
   ciudad       VARCHAR(255) NOT NULL DEFAULT '',
   status       VARCHAR(20)  CHECK (status IN ('Venta', 'Credito', 'Prospecto')),
+  semaforo     VARCHAR(10)  CHECK (semaforo IN ('verde', 'amarillo', 'rojo')),
   comentarios  TEXT,                                  -- fechas, motivos, seguimientos
   pagina_web   VARCHAR(500),                          -- sitio web del cliente
   created_at   TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
@@ -29,7 +30,8 @@ CREATE TABLE IF NOT EXISTS contactos (
   cliente_id  UUID        NOT NULL REFERENCES clientes(id) ON DELETE CASCADE,
   nombre      VARCHAR(255) NOT NULL DEFAULT '',
   telefonos   TEXT[]       NOT NULL DEFAULT '{}',     -- varios números por contacto
-  correo      VARCHAR(255),
+  correos     TEXT[]       NOT NULL DEFAULT '{}',     -- varios correos por contacto
+  correo      VARCHAR(255),                           -- legacy (primer correo)
   created_at  TIMESTAMPTZ  NOT NULL DEFAULT NOW()
 );
 
@@ -135,6 +137,7 @@ SELECT
   c.razon_social,
   c.ciudad,
   c.status,
+  c.semaforo,
   c.comentarios,
   c.pagina_web,
   c.created_at,
@@ -146,7 +149,8 @@ SELECT
         'id',        ct.id,
         'nombre',    ct.nombre,
         'telefonos', ct.telefonos,
-        'correo',    ct.correo
+        'correos',   ct.correos,
+        'correo',    COALESCE(ct.correos[1], ct.correo)
       )
     ) FILTER (WHERE ct.id IS NOT NULL),
     '[]'

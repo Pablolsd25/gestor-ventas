@@ -78,7 +78,7 @@ const navItems = [
   { href: "/ventas",        label: "Ventas",        icon: <IconTrending />},
   { href: "/cotizador",     label: "Cotizador",     icon: <IconDoc />     },
   { href: "/recordatorios", label: "Recordatorios", icon: <IconBell />    },
-  { href: "/notas",         label: "Notas",         icon: <IconNote />    },
+  { href: "/notas",         label: "Caja Fuerte",   icon: <IconNote />    },
   { href: "/materiales",    label: "Materiales",    icon: <IconCube />    },
   { href: "/resultados",    label: "Resultados",    icon: <IconChart />   },
 ];

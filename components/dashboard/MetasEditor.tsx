@@ -34,9 +34,9 @@ export default function MetasEditor({ metaMonto, metaToneladas }: Props) {
             onClick={() => setOpen(false)}
             aria-hidden="true"
           />
-          <div className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl ring-1 ring-black/8 overflow-hidden">
-            <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-              <h3 className="font-semibold text-gray-800">Metas del mes</h3>
+          <div className="relative w-full max-w-md bg-white dark:bg-slate-800 rounded-2xl shadow-2xl ring-1 ring-black/8 dark:ring-slate-700 overflow-hidden">
+            <div className="px-5 py-4 border-b border-gray-100 dark:border-slate-700 flex items-center justify-between">
+              <h3 className="font-semibold text-gray-800 dark:text-slate-100">Metas del mes</h3>
               <button
                 onClick={() => setOpen(false)}
                 className="text-gray-400 hover:text-gray-600 p-1 rounded-md transition-colors"

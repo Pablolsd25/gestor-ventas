@@ -4,6 +4,8 @@ import Link from "next/link";
 import { Suspense } from "react";
 import DeleteClienteButton from "@/components/clientes/DeleteClienteButton";
 import ClientesFilters from "@/components/clientes/ClientesFilters";
+import SemaforoBadge from "@/components/clientes/SemaforoBadge";
+import PrintButton from "@/components/ui/PrintButton";
 
 // ── Status helpers ────────────────────────────────────────────────────────────
 
@@ -111,10 +113,17 @@ export default async function ClientesPage({
     return true;
   });
 
-  type Contacto = { id: string; nombre: string; telefonos: string[]; correo: string | null };
+  type Contacto = { id: string; nombre: string; telefonos: string[]; correos?: string[]; correo: string | null };
+
+  function contactEmails(cp: Contacto | undefined): string[] {
+    if (!cp) return [];
+    const fromArray = (cp.correos ?? []).filter(Boolean);
+    if (fromArray.length) return fromArray;
+    return cp.correo ? [cp.correo] : [];
+  }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 print:space-y-3">
 
       {/* ── Tab bar ─────────────────────────────────────────────────────── */}
       <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm px-2 py-2">
@@ -151,7 +160,7 @@ export default async function ClientesPage({
       </div>
 
       {/* ── Cabecera ────────────────────────────────────────────────────── */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 print:hidden">
         <Suspense fallback={null}>
           <ClientesFilters ciudades={ciudadesOpts} materiales={materialesOpts} />
         </Suspense>
@@ -161,6 +170,7 @@ export default async function ClientesPage({
               ? `${clientes.length} clientes en total`
               : `${filtered.length} de ${clientes.length} clientes`}
           </p>
+          <PrintButton />
           <Link
             href="/clientes/nuevo"
             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
@@ -181,14 +191,18 @@ export default async function ClientesPage({
           const contactos = (c.contactos ?? []) as Contacto[];
           const cp = contactos.find((ct) => ct.nombre) ?? contactos[0];
           const otrosContactos = contactos.length - 1;
+          const emails = contactEmails(cp);
           return (
             <div key={c.id} className="bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 shadow-sm p-4 space-y-3">
               <div className="flex items-start justify-between gap-2">
-                <div>
+                <div className="flex items-start gap-2">
+                  <SemaforoBadge semaforo={c.semaforo} />
+                  <div>
                   <p className="font-semibold text-gray-900 dark:text-slate-100 leading-tight">{c.razon_social}</p>
                   {c.sae && (
                     <p className="text-xs text-gray-400 dark:text-slate-500 font-mono mt-0.5">SAE {c.sae}</p>
                   )}
+                  </div>
                 </div>
                 {c.status ? (
                   <span className={`shrink-0 text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_BADGE[c.status]}`}>
@@ -213,6 +227,17 @@ export default async function ClientesPage({
                   <div>
                     <p className="text-xs text-gray-400 dark:text-slate-500 uppercase tracking-wide">Teléfono</p>
                     <p className="text-gray-700 dark:text-slate-300">{cp.telefonos[0]}</p>
+                  </div>
+                )}
+                {emails[0] && (
+                  <div>
+                    <p className="text-xs text-gray-400 dark:text-slate-500 uppercase tracking-wide">Correo</p>
+                    <p className="text-gray-700 dark:text-slate-300 text-xs break-all">
+                      {emails[0]}
+                      {emails.length > 1 && (
+                        <span className="ml-1 text-blue-500">+{emails.length - 1}</span>
+                      )}
+                    </p>
                   </div>
                 )}
                 {c.ciudad && (
@@ -266,6 +291,7 @@ export default async function ClientesPage({
             <table className="w-full text-sm min-w-[900px]">
               <thead className="bg-gray-50 dark:bg-slate-800/80 border-b border-gray-100 dark:border-slate-700">
                 <tr>
+                  <th className="text-left px-4 py-3 text-gray-500 dark:text-slate-400 font-medium w-10">Sem.</th>
                   <th className="text-left px-4 py-3 text-gray-500 dark:text-slate-400 font-medium w-16">SAE</th>
                   <th className="text-left px-4 py-3 text-gray-500 dark:text-slate-400 font-medium">Razón Social</th>
                   <th className="text-left px-4 py-3 text-gray-500 dark:text-slate-400 font-medium">Contacto</th>
@@ -285,8 +311,12 @@ export default async function ClientesPage({
                   const contactos = (c.contactos ?? []) as Contacto[];
                   const cp = contactos.find((ct) => ct.nombre) ?? contactos[0];
                   const otrosContactos = contactos.length - 1;
+                  const emails = contactEmails(cp);
                   return (
                     <tr key={c.id} className="hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors align-top">
+                      <td className="px-4 py-3">
+                        <SemaforoBadge semaforo={c.semaforo} />
+                      </td>
                       <td className="px-4 py-3 text-gray-400 dark:text-slate-500 font-mono text-xs">{c.sae ?? "—"}</td>
 
                       <td className="px-4 py-3 font-medium text-gray-900 dark:text-slate-100">{c.razon_social}</td>
@@ -303,9 +333,15 @@ export default async function ClientesPage({
                       </td>
 
                       <td className="px-4 py-3 text-gray-600 dark:text-slate-300 max-w-[180px]">
-                        <span className="break-all text-xs">
-                          {cp?.correo ?? <span className="text-gray-400 dark:text-slate-500">—</span>}
-                        </span>
+                        {emails.length === 0 ? (
+                          <span className="text-gray-400 dark:text-slate-500">—</span>
+                        ) : (
+                          <div className="space-y-0.5">
+                            {emails.map((e, i) => (
+                              <div key={i} className="break-all text-xs">{e}</div>
+                            ))}
+                          </div>
+                        )}
                       </td>
 
                       <td className="px-4 py-3 text-gray-600 dark:text-slate-300">{c.ciudad}</td>

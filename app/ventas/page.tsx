@@ -3,6 +3,7 @@ import { formatMonto, calcComision } from "@/lib/utils";
 import Link from "next/link";
 import type { VentaConUniones } from "@/types/database";
 import DeleteVentaButton from "@/components/ventas/DeleteVentaButton";
+import PrintButton from "@/components/ui/PrintButton";
 
 // ── Estado helpers ─────────────────────────────────────────────────────────────
 
@@ -183,18 +184,21 @@ export default async function VentasPage({
       </div>
 
       {/* ── Cabecera ────────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3 print:hidden">
         <p className="text-sm text-gray-500 dark:text-slate-400">
           {filtered.length === ventas.length
             ? `${ventas.length} ventas / pedidos en total`
             : `${filtered.length} de ${ventas.length} ventas`}
         </p>
-        <Link
+        <div className="flex items-center gap-2">
+          <PrintButton />
+          <Link
           href="/ventas/nuevo"
           className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
         >
           + Nueva Venta
         </Link>
+        </div>
       </div>
 
       {/* ── Tabla ───────────────────────────────────────────────────── */}

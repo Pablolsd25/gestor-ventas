@@ -1,6 +1,10 @@
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { formatMonto } from "@/lib/utils";
 import type { VentaConUniones, ClienteCompletoRow } from "@/types/database";
+import { Suspense } from "react";
+import ResultadosFilters from "@/components/resultados/ResultadosFilters";
+import PrintButton from "@/components/ui/PrintButton";
+import { tonBarColor } from "@/components/clientes/SemaforoBadge";
 
 const MESES: Record<string, string> = {
   "01": "Ene", "02": "Feb", "03": "Mar", "04": "Abr",
@@ -8,7 +12,33 @@ const MESES: Record<string, string> = {
   "09": "Sep", "10": "Oct", "11": "Nov", "12": "Dic",
 };
 
-export default async function ResultadosPage() {
+function filterByPeriod(
+  ventas: VentaConUniones[],
+  year: number,
+  month: string | null
+): VentaConUniones[] {
+  return ventas.filter((v) => {
+    const ym = v.fecha_creacion.slice(0, 7);
+    const y = ym.slice(0, 4);
+    const m = ym.slice(5, 7);
+    if (y !== String(year)) return false;
+    if (month && m !== month) return false;
+    return true;
+  });
+}
+
+export default async function ResultadosPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ anio?: string; mes?: string }>;
+}) {
+  const { anio: rawAnio, mes: rawMes } = await searchParams;
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth() + 1;
+  const year = rawAnio && /^\d{4}$/.test(rawAnio) ? Number(rawAnio) : currentYear;
+  const month = rawMes && /^(0[1-9]|1[0-2])$/.test(rawMes) ? rawMes : null;
+
   const supabase = await createSupabaseServerClient();
 
   const [{ data: ventasData }, { data: clientesData }] = await Promise.all([
@@ -19,15 +49,20 @@ export default async function ResultadosPage() {
     supabase.from("v_clientes").select("*"),
   ]);
 
-  const ventas   = (ventasData  ?? []) as VentaConUniones[];
+  const allVentas = (ventasData ?? []) as VentaConUniones[];
   const clientes = (clientesData ?? []) as ClienteCompletoRow[];
+  const ventas = filterByPeriod(allVentas, year, month);
 
-  // ── Segmentación por estado ───────────────────────────────────────────────
+  const years = Array.from(
+    new Set(allVentas.map((v) => Number(v.fecha_creacion.slice(0, 4))))
+  ).sort((a, b) => b - a);
+  if (!years.includes(currentYear)) years.unshift(currentYear);
+
   const propuestas    = ventas.filter((v) => v.estado === "propuesta");
   const enProcesoOnly = ventas.filter((v) => v.estado === "en_proceso");
   const ganadas       = ventas.filter((v) => v.estado === "ganada");
   const perdidas      = ventas.filter((v) => v.estado === "perdida");
-  const enProceso     = [...propuestas, ...enProcesoOnly]; // activo = propuesta + en_proceso
+  const enProceso     = [...propuestas, ...enProcesoOnly];
 
   const facturadoTotal = ganadas.reduce((acc, v) => acc + Number(v.monto), 0);
   const pipelineTotal  = enProceso.reduce((acc, v) => acc + Number(v.monto), 0);
@@ -40,75 +75,47 @@ export default async function ResultadosPage() {
       : 0;
   const ticketPromedio = ganadas.length > 0 ? facturadoTotal / ganadas.length : 0;
 
-  // ── Facturación mensual (agrupada desde fecha_creacion) ───────────────────
   const mensualesMap: Record<string, { monto: number; cantidad: number }> = {};
+  for (let m = 1; m <= 12; m++) {
+    const key = `${year}-${String(m).padStart(2, "0")}`;
+    mensualesMap[key] = { monto: 0, cantidad: 0 };
+  }
   ganadas.forEach((v) => {
     const ym = v.fecha_creacion.slice(0, 7);
+    if (!ym.startsWith(String(year))) return;
     if (!mensualesMap[ym]) mensualesMap[ym] = { monto: 0, cantidad: 0 };
     mensualesMap[ym].monto    += Number(v.monto);
     mensualesMap[ym].cantidad += Number(v.cantidad ?? 0);
   });
+
   const ventasMensuales = Object.entries(mensualesMap)
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([ym, val]) => ({
-      mes:      MESES[ym.slice(5, 7)] ?? ym.slice(5, 7),
-      monto:    val.monto,
+      ym,
+      mes: MESES[ym.slice(5, 7)] ?? ym.slice(5, 7),
+      monto: val.monto,
       cantidad: val.cantidad,
     }));
-  const maxMonto    = Math.max(...ventasMensuales.map((m) => m.monto),    1);
+
+  const maxMonto    = Math.max(...ventasMensuales.map((m) => m.monto), 1);
   const maxCantidad = Math.max(...ventasMensuales.map((m) => m.cantidad), 1);
 
-  // ── Embudo de conversión ──────────────────────────────────────────────────
-  const montoProspuesta   = propuestas.reduce((a, v) => a + Number(v.monto), 0);
-  const montoEnProceso    = enProcesoOnly.reduce((a, v) => a + Number(v.monto), 0);
-  const montoPerdidas     = perdidas.reduce((a, v) => a + Number(v.monto), 0);
-  const totalFunnel       = ventas.length || 1;
+  const montoProspuesta = propuestas.reduce((a, v) => a + Number(v.monto), 0);
+  const montoEnProceso  = enProcesoOnly.reduce((a, v) => a + Number(v.monto), 0);
+  const montoPerdidas   = perdidas.reduce((a, v) => a + Number(v.monto), 0);
+  const maxFunnelCount  = Math.max(propuestas.length, enProcesoOnly.length, ganadas.length, perdidas.length, 1);
 
   const funnelEtapas = [
-    { label: "Propuestas",  count: propuestas.length,    monto: montoProspuesta, color: "bg-purple-400", width: 100 },
-    { label: "En proceso",  count: enProcesoOnly.length, monto: montoEnProceso,  color: "bg-amber-400",  width: 78  },
-    { label: "Ganadas",     count: ganadas.length,       monto: facturadoTotal,  color: "bg-emerald-500",width: 56  },
-    { label: "Perdidas",    count: perdidas.length,      monto: montoPerdidas,   color: "bg-red-400",    width: 34  },
-  ];
+    { label: "Propuestas", count: propuestas.length,    monto: montoProspuesta, color: "bg-purple-500" },
+    { label: "En proceso", count: enProcesoOnly.length, monto: montoEnProceso,  color: "bg-amber-500"  },
+    { label: "Ganadas",    count: ganadas.length,       monto: facturadoTotal,  color: "bg-emerald-500"},
+    { label: "Perdidas",   count: perdidas.length,      monto: montoPerdidas,   color: "bg-red-500"    },
+  ].map((e) => ({
+    ...e,
+    width: Math.max(Math.round((e.count / maxFunnelCount) * 100), e.count > 0 ? 35 : 20),
+  }));
 
-  // ── Consumo por material ──────────────────────────────────────────────────
-  const porMaterial: Record<string, { clientes: number; ton: number }> = {};
-  clientes.forEach((c) => {
-    (c.materiales as string[]).forEach((m) => {
-      if (!porMaterial[m]) porMaterial[m] = { clientes: 0, ton: 0 };
-      porMaterial[m].clientes += 1;
-    });
-  });
-  ganadas.forEach((v) => {
-    const nombre = v.materiales?.nombre;
-    if (nombre) {
-      if (!porMaterial[nombre]) porMaterial[nombre] = { clientes: 0, ton: 0 };
-      porMaterial[nombre].ton += Number(v.cantidad ?? 0);
-    }
-  });
-  const materialesList = Object.entries(porMaterial).sort(
-    (a, b) => b[1].clientes - a[1].clientes
-  );
-
-  // ── Facturado por material ────────────────────────────────────────────────
-  const porMaterialMonto: Record<string, { monto: number; ton: number }> = {};
-  ganadas.forEach((v) => {
-    const nombre = v.materiales?.nombre;
-    if (!nombre) return;
-    if (!porMaterialMonto[nombre]) porMaterialMonto[nombre] = { monto: 0, ton: 0 };
-    porMaterialMonto[nombre].monto += Number(v.monto);
-    porMaterialMonto[nombre].ton   += Number(v.cantidad ?? 0);
-  });
-  const materialMontoList = Object.entries(porMaterialMonto).sort(
-    (a, b) => b[1].monto - a[1].monto
-  );
-  const maxMaterialMonto = Math.max(...materialMontoList.map(([, d]) => d.monto), 1);
-
-  // ── Pipeline activo por cliente ───────────────────────────────────────────
-  const pipelineClientesMap: Record<
-    string,
-    { razon_social: string; monto: number; count: number }
-  > = {};
+  const pipelineClientesMap: Record<string, { razon_social: string; monto: number; count: number }> = {};
   enProceso.forEach((v) => {
     if (!v.cliente_id || !v.clientes?.razon_social) return;
     if (!pipelineClientesMap[v.cliente_id]) {
@@ -126,7 +133,6 @@ export default async function ResultadosPage() {
     .slice(0, 6);
   const maxPipelineMonto = Math.max(...topPipeline.map((p) => p.monto), 1);
 
-  // ── Top clientes por facturación ──────────────────────────────────────────
   type TopCliente = { id: string; razon_social: string; facturado: number; ton: number };
   const topClientesMap: Record<string, TopCliente> = {};
   ganadas.forEach((v) => {
@@ -141,10 +147,24 @@ export default async function ResultadosPage() {
   });
   const topClientes = Object.values(topClientesMap).sort((a, b) => b.facturado - a.facturado);
 
+  const periodLabel = month
+    ? `${MESES[month]} ${year}`
+    : `Año ${year}`;
+
   return (
     <div className="space-y-6">
 
-      {/* ── KPIs principales ──────────────────────────────────── */}
+      <div className="flex flex-wrap items-center justify-between gap-3 print:hidden">
+        <Suspense fallback={null}>
+          <ResultadosFilters years={years} currentYear={currentYear} currentMonth={currentMonth} />
+        </Suspense>
+        <PrintButton />
+      </div>
+
+      <p className="text-sm text-gray-500 dark:text-slate-400 -mt-2">
+        Mostrando datos de: <span className="font-medium text-gray-700 dark:text-slate-300">{periodLabel}</span>
+      </p>
+
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
           { label: "Total Facturado", valor: formatMonto(facturadoTotal), color: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-50 border-emerald-100 dark:bg-emerald-900/30 dark:border-emerald-800" },
@@ -159,7 +179,6 @@ export default async function ResultadosPage() {
         ))}
       </div>
 
-      {/* ── Toneladas ─────────────────────────────────────────── */}
       <div className="grid grid-cols-2 gap-4">
         <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 shadow-sm p-4 text-center">
           <p className="text-3xl font-bold text-gray-900 dark:text-slate-100">{tonGanadas} ton</p>
@@ -171,32 +190,87 @@ export default async function ResultadosPage() {
         </div>
       </div>
 
-      {/* ── Facturación mensual + Distribución ───────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Embudo vertical */}
+      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 p-5">
+        <h3 className="font-semibold text-gray-800 dark:text-slate-100 mb-1">Embudo de Conversi&oacute;n</h3>
+        <p className="text-xs text-gray-400 dark:text-slate-500 mb-5">{ventas.length} oportunidades · {periodLabel}</p>
+        <div className="flex flex-col items-center gap-1 max-w-xl mx-auto">
+          {funnelEtapas.map((etapa, i) => (
+            <div key={etapa.label} className="w-full flex flex-col items-center">
+              <div
+                className={`${etapa.color} rounded-lg px-4 py-3 flex items-center justify-between gap-2 text-white text-sm transition-all`}
+                style={{ width: `${etapa.width}%`, minWidth: "200px" }}
+              >
+                <span className="font-medium">{etapa.label}</span>
+                <div className="flex items-center gap-3 text-right">
+                  <span className="opacity-90">{etapa.count} deal{etapa.count !== 1 ? "s" : ""}</span>
+                  <span className="font-semibold">{formatMonto(etapa.monto)}</span>
+                </div>
+              </div>
+              {i < funnelEtapas.length - 1 && (
+                <div className="text-gray-300 dark:text-slate-600 text-lg leading-none py-0.5 select-none">▼</div>
+              )}
+            </div>
+          ))}
+        </div>
+        {ventas.length > 0 && (
+          <div className="mt-5 pt-4 border-t border-gray-100 dark:border-slate-700 grid grid-cols-3 gap-4 text-center">
+            {[
+              {
+                label: "Propuesta → Ganada",
+                val: propuestas.length > 0
+                  ? `${Math.round((ganadas.length / (propuestas.length + ganadas.length + perdidas.length)) * 100)}%`
+                  : "—",
+                color: "text-emerald-600 dark:text-emerald-400",
+              },
+              {
+                label: "Tasa de cierre",
+                val: `${tasaCierre}%`,
+                color: "text-blue-600 dark:text-blue-400",
+              },
+              {
+                label: "Tasa de pérdida",
+                val: ganadas.length + perdidas.length > 0
+                  ? `${Math.round((perdidas.length / (ganadas.length + perdidas.length)) * 100)}%`
+                  : "—",
+                color: "text-red-500 dark:text-red-400",
+              },
+            ].map((m) => (
+              <div key={m.label}>
+                <p className={`text-xl font-bold ${m.color}`}>{m.val}</p>
+                <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">{m.label}</p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
-        {/* Facturación mensual */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 p-5">
           <h3 className="font-semibold text-gray-800 dark:text-slate-100 mb-4">Facturaci&oacute;n Mensual (MXN)</h3>
-          {ventasMensuales.length === 0 ? (
+          {ventasMensuales.every((m) => m.monto === 0) ? (
             <p className="text-sm text-gray-400 dark:text-slate-500 text-center py-8">Sin datos de ventas ganadas</p>
           ) : (
-            <div className="flex items-end gap-3 h-48">
+            <div className="flex items-end gap-2 h-48">
               {ventasMensuales.map((m) => {
-                const height = Math.round((m.monto / maxMonto) * 100);
+                const height = m.monto > 0 ? Math.max(Math.round((m.monto / maxMonto) * 100), 8) : 0;
                 return (
-                  <div key={m.mes} className="flex-1 flex flex-col items-center gap-1">
-                    <span className="text-xs text-gray-500 dark:text-slate-400 font-medium text-center leading-tight">
-                      {(m.monto / 1000).toFixed(0)}k
-                    </span>
-                    <div
-                      className="w-full bg-blue-500 rounded-t-md"
-                      style={{ height: `${height}%` }}
-                      title={`${m.mes}: ${formatMonto(m.monto)} · ${m.cantidad} ton`}
-                    />
-                    <div className="text-center">
-                      <span className="text-xs text-gray-500 dark:text-slate-400 block">{m.mes}</span>
-                      <span className="text-xs text-gray-400 dark:text-slate-500">{m.cantidad}t</span>
+                  <div key={m.ym} className="flex-1 flex flex-col items-center gap-1">
+                    {m.monto > 0 && (
+                      <span className="text-[10px] text-gray-500 dark:text-slate-400 font-medium text-center leading-tight">
+                        {(m.monto / 1000).toFixed(0)}k
+                      </span>
+                    )}
+                    <div className="w-full flex items-end justify-center h-36">
+                      {height > 0 && (
+                        <div
+                          className="w-full bg-blue-500 rounded-t-md"
+                          style={{ height: `${height}%` }}
+                          title={`${m.mes}: ${formatMonto(m.monto)} · ${m.cantidad} ton`}
+                        />
+                      )}
                     </div>
+                    <span className="text-[10px] text-gray-500 dark:text-slate-400">{m.mes}</span>
                   </div>
                 );
               })}
@@ -204,7 +278,45 @@ export default async function ResultadosPage() {
           )}
         </div>
 
-        {/* Distribución por estado */}
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 p-5">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-semibold text-gray-800 dark:text-slate-100">Toneladas por Mes</h3>
+            <div className="flex items-center gap-2 text-[10px] text-gray-400 dark:text-slate-500">
+              <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm bg-emerald-500" /> ≥80</span>
+              <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm bg-amber-400" /> ≥40</span>
+              <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm bg-red-500" /> &lt;40</span>
+            </div>
+          </div>
+          {ventasMensuales.every((m) => m.cantidad === 0) ? (
+            <p className="text-sm text-gray-400 dark:text-slate-500 text-center py-8">Sin datos</p>
+          ) : (
+            <div className="flex items-end gap-2 h-48">
+              {ventasMensuales.map((m) => {
+                const height = m.cantidad > 0 ? Math.max(Math.round((m.cantidad / maxCantidad) * 100), 8) : 0;
+                return (
+                  <div key={m.ym} className="flex-1 flex flex-col items-center gap-1">
+                    {m.cantidad > 0 && (
+                      <span className="text-[10px] text-gray-500 dark:text-slate-400 font-medium">{m.cantidad}t</span>
+                    )}
+                    <div className="w-full flex items-end justify-center h-36">
+                      {height > 0 && (
+                        <div
+                          className={`w-full rounded-t-md ${tonBarColor(m.cantidad)}`}
+                          style={{ height: `${height}%` }}
+                          title={`${m.mes}: ${m.cantidad} ton`}
+                        />
+                      )}
+                    </div>
+                    <span className="text-[10px] text-gray-500 dark:text-slate-400">{m.mes}</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 p-5">
           <h3 className="font-semibold text-gray-800 dark:text-slate-100 mb-4">Distribuci&oacute;n de Ventas</h3>
           <div className="space-y-3">
@@ -219,121 +331,30 @@ export default async function ResultadosPage() {
                   <span className="text-gray-500 dark:text-slate-400">{item.count} ({item.pct}%)</span>
                 </div>
                 <div className="h-2 bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-blue-500 rounded-full"
-                    style={{ width: `${item.pct}%` }}
-                  />
+                  <div className={`h-full ${item.color} rounded-full`} style={{ width: `${item.pct}%` }} />
                 </div>
               </div>
             ))}
           </div>
-
-          {/* Cartera por status */}
           <div className="mt-6 pt-4 border-t border-gray-100 dark:border-slate-700">
             <p className="text-xs text-gray-400 dark:text-slate-500 font-medium mb-3 uppercase tracking-wide">
               Cartera por status
             </p>
             <div className="grid grid-cols-3 gap-2 text-center text-sm">
               {[
-                  { label: "Venta",     color: "text-green-600 dark:text-green-400", count: clientes.filter((c) => c.status === "Venta").length },
-                { label: "Cr&eacute;dito", color: "text-blue-600 dark:text-blue-400",  count: clientes.filter((c) => c.status === "Credito").length },
+                { label: "Venta",     color: "text-green-600 dark:text-green-400", count: clientes.filter((c) => c.status === "Venta").length },
+                { label: "Crédito",   color: "text-blue-600 dark:text-blue-400",   count: clientes.filter((c) => c.status === "Credito").length },
                 { label: "Prospecto", color: "text-amber-600 dark:text-amber-400", count: clientes.filter((c) => c.status === "Prospecto").length },
               ].map((s) => (
                 <div key={s.label}>
                   <p className={`font-bold ${s.color}`}>{s.count}</p>
-                  <p className="text-gray-400 dark:text-slate-500 text-xs" dangerouslySetInnerHTML={{ __html: s.label }} />
+                  <p className="text-gray-400 dark:text-slate-500 text-xs">{s.label}</p>
                 </div>
               ))}
             </div>
           </div>
         </div>
-      </div>
 
-      {/* ── NUEVO: Embudo de conversión ───────────────────────── */}
-      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 p-5">
-        <h3 className="font-semibold text-gray-800 dark:text-slate-100 mb-1">Embudo de Conversi&oacute;n</h3>
-        <p className="text-xs text-gray-400 dark:text-slate-500 mb-5">{ventas.length} oportunidades totales</p>
-        <div className="space-y-1.5">
-          {funnelEtapas.map((etapa, i) => (
-            <div key={etapa.label} className="flex flex-col items-center gap-0">
-              <div
-                className={`${etapa.color} rounded-lg px-4 py-3 flex items-center justify-between gap-2 text-white text-sm transition-all`}
-                style={{ width: `${etapa.width}%`, minWidth: "240px" }}
-              >
-                <span className="font-medium">{etapa.label}</span>
-                <div className="flex items-center gap-3 text-right">
-                  <span className="opacity-80">{etapa.count} deal{etapa.count !== 1 ? "s" : ""}</span>
-                  <span className="font-semibold">{formatMonto(etapa.monto)}</span>
-                </div>
-              </div>
-              {i < funnelEtapas.length - 1 && (
-                <div className="text-gray-300 dark:text-slate-600 text-xs leading-none select-none">&#9660;</div>
-              )}
-            </div>
-          ))}
-        </div>
-        {/* Tasa de conversión real */}
-        {ventas.length > 0 && (
-          <div className="mt-5 pt-4 border-t border-gray-100 dark:border-slate-700 grid grid-cols-3 gap-4 text-center">
-            {[
-              {
-                label: "Propuesta → Ganada",
-                val: propuestas.length > 0
-                  ? `${Math.round((ganadas.length / (propuestas.length + ganadas.length + perdidas.length)) * 100)}%`
-                  : "—",
-                color: "text-emerald-600",
-              },
-              {
-                label: "Tasa de cierre",
-                val: `${tasaCierre}%`,
-                color: "text-blue-600",
-              },
-              {
-                label: "Tasa de pérdida",
-                val: ganadas.length + perdidas.length > 0
-                  ? `${Math.round((perdidas.length / (ganadas.length + perdidas.length)) * 100)}%`
-                  : "—",
-                color: "text-red-500",
-              },
-            ].map((m) => (
-              <div key={m.label}>
-                <p className={`text-xl font-bold ${m.color}`}>{m.val}</p>
-                <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">{m.label}</p>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* ── NUEVO: Toneladas mensuales + Pipeline por cliente ─── */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-        {/* Toneladas mensuales */}
-        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 p-5">
-          <h3 className="font-semibold text-gray-800 dark:text-slate-100 mb-4">Toneladas por Mes</h3>
-          {ventasMensuales.length === 0 ? (
-            <p className="text-sm text-gray-400 dark:text-slate-500 text-center py-8">Sin datos</p>
-          ) : (
-            <div className="flex items-end gap-3 h-48">
-              {ventasMensuales.map((m) => {
-                const height = Math.round((m.cantidad / maxCantidad) * 100);
-                return (
-                  <div key={m.mes} className="flex-1 flex flex-col items-center gap-1">
-                    <span className="text-xs text-gray-500 dark:text-slate-400 font-medium">{m.cantidad}t</span>
-                    <div
-                      className="w-full bg-emerald-500 rounded-t-md"
-                      style={{ height: `${height}%` }}
-                      title={`${m.mes}: ${m.cantidad} ton`}
-                    />
-                    <span className="text-xs text-gray-500 dark:text-slate-400">{m.mes}</span>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        {/* Pipeline activo por cliente */}
         <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 p-5">
           <h3 className="font-semibold text-gray-800 dark:text-slate-100 mb-4">Pipeline Activo por Cliente</h3>
           {topPipeline.length === 0 ? (
@@ -353,10 +374,7 @@ export default async function ResultadosPage() {
                         </span>
                       </div>
                       <div className="h-1.5 bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-amber-400 rounded-full"
-                          style={{ width: `${pct}%` }}
-                        />
+                        <div className="h-full bg-amber-400 rounded-full" style={{ width: `${pct}%` }} />
                       </div>
                     </div>
                   </div>
@@ -367,71 +385,6 @@ export default async function ResultadosPage() {
         </div>
       </div>
 
-      {/* ── NUEVO: Facturado por material ─────────────────────── */}
-      {materialMontoList.length > 0 && (
-        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 p-5">
-          <h3 className="font-semibold text-gray-800 dark:text-slate-100 mb-4">Facturado por Material</h3>
-          <div className="space-y-3">
-            {materialMontoList.map(([nombre, d]) => {
-              const pct = Math.round((d.monto / maxMaterialMonto) * 100);
-              return (
-                <div key={nombre} className="flex items-center gap-3">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm font-medium text-gray-800 dark:text-slate-100 truncate">{nombre}</span>
-                      <div className="flex items-center gap-3 shrink-0 ml-2">
-                        {d.ton > 0 && (
-                          <span className="text-xs text-gray-400 dark:text-slate-500">{d.ton} ton</span>
-                        )}
-                        <span className="text-sm font-semibold text-gray-700 dark:text-slate-300">
-                          {formatMonto(d.monto)}
-                        </span>
-                      </div>
-                    </div>
-                      <div className="h-2 bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-blue-500 rounded-full"
-                          style={{ width: `${pct}%` }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-          </div>
-        </div>
-      )}
-
-      {/* ── Consumo por material (tabla) ──────────────────────── */}
-      {materialesList.length > 0 && (
-        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 p-5">
-          <h3 className="font-semibold text-gray-800 dark:text-slate-100 mb-4">Consumo por Material</h3>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50 dark:bg-slate-800/80 border-b border-gray-100 dark:border-slate-700">
-                <tr>
-                  <th className="text-left px-4 py-2 text-gray-500 dark:text-slate-400 font-medium">Material</th>
-                  <th className="text-right px-4 py-2 text-gray-500 dark:text-slate-400 font-medium">Clientes</th>
-                  <th className="text-right px-4 py-2 text-gray-500 dark:text-slate-400 font-medium">Ton. entregadas</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50 dark:divide-slate-700/50">
-                {materialesList.map(([material, d]) => (
-                  <tr key={material} className="hover:bg-gray-50 dark:hover:bg-slate-700/50">
-                    <td className="px-4 py-2 font-medium text-gray-800 dark:text-slate-100">{material}</td>
-                    <td className="px-4 py-2 text-right text-gray-600 dark:text-slate-300">{d.clientes}</td>
-                    <td className="px-4 py-2 text-right text-gray-600 dark:text-slate-300">
-                      {d.ton > 0 ? `${d.ton} ton` : "—"}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
-      {/* ── Top clientes por facturación ──────────────────────── */}
       {topClientes.length > 0 && (
         <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 p-5">
           <h3 className="font-semibold text-gray-800 dark:text-slate-100 mb-4">Top Clientes por Facturaci&oacute;n</h3>
@@ -449,7 +402,7 @@ export default async function ResultadosPage() {
                     </div>
                     <span className="text-sm font-semibold text-gray-700 dark:text-slate-300">{formatMonto(c.facturado)}</span>
                   </div>
-                  <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-1.5 bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden">
                     <div
                       className="h-full bg-blue-500 rounded-full"
                       style={{ width: `${Math.round((c.facturado / topClientes[0].facturado) * 100)}%` }}
@@ -461,7 +414,6 @@ export default async function ResultadosPage() {
           </div>
         </div>
       )}
-
     </div>
   );
 }

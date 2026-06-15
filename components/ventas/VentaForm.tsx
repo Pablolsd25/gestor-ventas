@@ -206,7 +206,7 @@ export default function VentaForm({
                 name="comision_tipo"
                 value={comisionTipo}
                 onChange={(e) => setComisionTipo(e.target.value as "porcentaje" | "monto" | "")}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white"
+                className="w-full px-4 py-2.5 border border-gray-300 dark:border-slate-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white dark:bg-slate-700 dark:text-slate-100"
               >
                 <option value="">Sin comisi&oacute;n</option>
                 <option value="porcentaje">Porcentaje (%)</option>

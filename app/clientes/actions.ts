@@ -13,7 +13,8 @@ interface ContactoData {
   id?: string;
   nombre: string;
   telefonos: string[];
-  correo: string;
+  correos: string[];
+  correo?: string | null;
 }
 
 interface ClienteFormData {
@@ -22,6 +23,7 @@ interface ClienteFormData {
   ciudad: string;
   pagina_web: string;
   status: "Venta" | "Credito" | "Prospecto" | "";
+  semaforo: "verde" | "amarillo" | "rojo" | "";
   comentarios: string;
   contactos: ContactoData[];
   materiales: number[];
@@ -45,20 +47,48 @@ function parseMateriales(raw: FormDataEntryValue | null): number[] {
   }
 }
 
-export async function createClienteAction(
-  prev: ActionState | undefined,
-  formData: FormData
-): Promise<ActionState> {
-  const data: ClienteFormData = {
+function normalizeContactos(contactos: ContactoData[]) {
+  return contactos
+    .filter((c) =>
+      c.nombre.trim() ||
+      c.telefonos.some((t) => t.trim()) ||
+      (c.correos ?? []).some((e) => e.trim()) ||
+      (c.correo?.trim() ?? "")
+    )
+    .map((c) => {
+      const correos = (c.correos ?? [])
+        .map((e) => e.trim())
+        .filter(Boolean);
+      const legacy = c.correo?.trim();
+      if (legacy && !correos.includes(legacy)) correos.unshift(legacy);
+      return {
+        nombre: c.nombre.trim() || "",
+        telefonos: c.telefonos.filter((t) => t.trim()),
+        correos,
+        correo: correos[0] ?? null,
+      };
+    });
+}
+
+function parseFormData(formData: FormData): ClienteFormData {
+  return {
     razon_social: (formData.get("razon_social") as string | null)?.trim() ?? "",
     sae: (formData.get("sae") as string | null)?.trim() ?? "",
     ciudad: (formData.get("ciudad") as string | null)?.trim() ?? "",
     pagina_web: (formData.get("pagina_web") as string | null)?.trim() ?? "",
     status: (formData.get("status") as string | null) as ClienteFormData["status"] ?? "",
+    semaforo: (formData.get("semaforo") as string | null) as ClienteFormData["semaforo"] ?? "",
     comentarios: (formData.get("comentarios") as string | null)?.trim() ?? "",
     contactos: parseContactos(formData.get("contactos")),
     materiales: parseMateriales(formData.get("materiales")),
   };
+}
+
+export async function createClienteAction(
+  prev: ActionState | undefined,
+  formData: FormData
+): Promise<ActionState> {
+  const data = parseFormData(formData);
 
   if (!data.razon_social) {
     return { error: "La razon social es obligatoria." };
@@ -76,6 +106,7 @@ export async function createClienteAction(
     ciudad: data.ciudad,
     pagina_web: data.pagina_web || null,
     status: data.status || null,
+    semaforo: data.semaforo || null,
     comentarios: data.comentarios || null,
   }).select("id").single();
 
@@ -86,14 +117,10 @@ export async function createClienteAction(
     return { error: `Error al crear cliente: ${clienteError?.message}` };
   }
 
-  const contactosToInsert = data.contactos
-    .filter((c) => c.nombre.trim() || c.telefonos.length > 0 || (c.correo?.trim() ?? ""))
-    .map((c) => ({
-      cliente_id: cliente.id,
-      nombre: c.nombre.trim() || "",
-      telefonos: c.telefonos.filter((t) => t.trim()),
-      correo: (c.correo?.trim() || null) as string | null,
-    }));
+  const contactosToInsert = normalizeContactos(data.contactos).map((c) => ({
+    cliente_id: cliente.id,
+    ...c,
+  }));
 
   if (contactosToInsert.length > 0) {
     const { error: contactosError } = await supabase.from("contactos").insert(contactosToInsert);
@@ -120,16 +147,7 @@ export async function updateClienteAction(
   prev: ActionState | undefined,
   formData: FormData
 ): Promise<ActionState> {
-  const data: ClienteFormData = {
-    razon_social: (formData.get("razon_social") as string | null)?.trim() ?? "",
-    sae: (formData.get("sae") as string | null)?.trim() ?? "",
-    ciudad: (formData.get("ciudad") as string | null)?.trim() ?? "",
-    pagina_web: (formData.get("pagina_web") as string | null)?.trim() ?? "",
-    status: (formData.get("status") as string | null) as ClienteFormData["status"] ?? "",
-    comentarios: (formData.get("comentarios") as string | null)?.trim() ?? "",
-    contactos: parseContactos(formData.get("contactos")),
-    materiales: parseMateriales(formData.get("materiales")),
-  };
+  const data = parseFormData(formData);
 
   if (!data.razon_social) {
     return { error: "La razon social es obligatoria." };
@@ -147,6 +165,7 @@ export async function updateClienteAction(
     ciudad: data.ciudad,
     pagina_web: data.pagina_web || null,
     status: data.status || null,
+    semaforo: data.semaforo || null,
     comentarios: data.comentarios || null,
   }).eq("id", id);
 
@@ -163,14 +182,10 @@ export async function updateClienteAction(
     return { error: `Error al actualizar contactos: ${deleteContactosError.message}` };
   }
 
-  const contactosToInsert = data.contactos
-    .filter((c) => c.nombre.trim() || c.telefonos.length > 0 || (c.correo?.trim() ?? ""))
-    .map((c) => ({
-      cliente_id: id,
-      nombre: c.nombre.trim() || "",
-      telefonos: c.telefonos.filter((t) => t.trim()),
-      correo: (c.correo?.trim() || null) as string | null,
-    }));
+  const contactosToInsert = normalizeContactos(data.contactos).map((c) => ({
+    cliente_id: id,
+    ...c,
+  }));
 
   if (contactosToInsert.length > 0) {
     await supabase.from("contactos").insert(contactosToInsert);

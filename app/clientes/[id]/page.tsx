@@ -3,6 +3,7 @@ import { formatMonto } from "@/lib/utils";
 import type { ClienteCompletoRow, VentaConUniones, RecordatorioConUniones } from "@/types/database";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import SemaforoBadge from "@/components/clientes/SemaforoBadge";
 
 const statusBadge: Record<string, string> = {
   Venta:     "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300",
@@ -62,8 +63,14 @@ export default async function ClienteDetallePage({ params }: Props) {
   const ventas       = (ventasData ?? []) as (VentaConUniones & { materiales: { nombre: string } | null })[];
   const recordatorios = (recordatoriosData ?? []) as RecordatorioConUniones[];
 
-  type Contacto = { id: string; nombre: string; telefonos: string[]; correo: string | null };
+  type Contacto = { id: string; nombre: string; telefonos: string[]; correos?: string[]; correo: string | null };
   const contactos = (cliente.contactos ?? []) as Contacto[];
+
+  function contactEmails(c: Contacto): string[] {
+    const fromArray = (c.correos ?? []).filter(Boolean);
+    if (fromArray.length) return fromArray;
+    return c.correo ? [c.correo] : [];
+  }
 
   const totalFacturado  = ventas
     .filter((v) => v.estado === "ganada")
@@ -85,6 +92,7 @@ export default async function ClienteDetallePage({ params }: Props) {
           <div>
             <div className="flex items-center gap-3 flex-wrap">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-slate-100">{cliente.razon_social}</h2>
+              <SemaforoBadge semaforo={cliente.semaforo} size="md" />
               {cliente.sae && (
                 <span className="text-xs font-mono bg-gray-100 text-gray-500 dark:bg-slate-700 dark:text-slate-400 px-2 py-0.5 rounded">
                   SAE {cliente.sae}
@@ -186,9 +194,14 @@ export default async function ClienteDetallePage({ params }: Props) {
                 {c.telefonos.map((t, j) => (
                   <p key={j} className="text-sm text-gray-600 dark:text-slate-400">📞 {t}</p>
                 ))}
-                {c.correo && (
-                  <p className="text-sm text-gray-600 dark:text-slate-400">✉️ {c.correo}</p>
-                )}
+                {contactEmails(c).map((email, j) => (
+                  <p key={j} className="text-sm text-gray-600 dark:text-slate-400">
+                    ✉️{" "}
+                    <a href={`mailto:${email}`} className="hover:text-blue-600 dark:hover:text-blue-400">
+                      {email}
+                    </a>
+                  </p>
+                ))}
               </div>
             </div>
           ))}
