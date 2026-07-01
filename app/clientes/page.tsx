@@ -5,7 +5,7 @@ import { Suspense } from "react";
 import DeleteClienteButton from "@/components/clientes/DeleteClienteButton";
 import ClientesFilters from "@/components/clientes/ClientesFilters";
 import SemaforoBadge from "@/components/clientes/SemaforoBadge";
-import PrintButton from "@/components/ui/PrintButton";
+import ExportClientesButton from "@/components/clientes/ExportClientesButton";
 
 // ── Status helpers ────────────────────────────────────────────────────────────
 
@@ -122,8 +122,14 @@ export default async function ClientesPage({
     return cp.correo ? [cp.correo] : [];
   }
 
+  const tabLabel = TABS.find((t) => t.key === activeTab)?.label ?? "Todos";
+  const filterParts: string[] = [];
+  if (fMaterial) filterParts.push(`Material: ${fMaterial}`);
+  if (fCiudad) filterParts.push(`Ciudad: ${fCiudad}`);
+  const filterLabel = filterParts.join(" · ");
+
   return (
-    <div className="space-y-5 print:space-y-3">
+    <div className="space-y-5">
 
       {/* ── Tab bar ─────────────────────────────────────────────────────── */}
       <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm px-2 py-2">
@@ -170,7 +176,11 @@ export default async function ClientesPage({
               ? `${clientes.length} clientes en total`
               : `${filtered.length} de ${clientes.length} clientes`}
           </p>
-          <PrintButton />
+          <ExportClientesButton
+            clientes={filtered}
+            tabLabel={tabLabel}
+            filterLabel={filterLabel}
+          />
           <Link
             href="/clientes/nuevo"
             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"

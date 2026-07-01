@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS perfil (
   nombre     VARCHAR(120) NOT NULL DEFAULT 'Vendedor',
   puesto     VARCHAR(120),
   foto_url   TEXT,
+  caja_fuerte_pin_hash TEXT,
   updated_at TIMESTAMPTZ  NOT NULL DEFAULT NOW()
 );
 

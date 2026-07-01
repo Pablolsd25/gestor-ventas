@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCajaFuertePinHash, saveCajaFuertePinHash } from "@/lib/caja-fuerte";
 import { hashPin, validatePinFormat } from "@/lib/pin-hash";
+import { friendlyDbError } from "@/lib/db-errors";
 
 export async function POST(request: Request) {
   const { pin, confirm } = (await request.json()) as { pin?: string; confirm?: string };
@@ -21,7 +22,7 @@ export async function POST(request: Request) {
 
   const saveError = await saveCajaFuertePinHash(hashPin(pin!));
   if (saveError) {
-    return NextResponse.json({ error: saveError }, { status: 500 });
+    return NextResponse.json({ error: friendlyDbError(saveError) }, { status: 500 });
   }
 
   return NextResponse.json({ ok: true });
